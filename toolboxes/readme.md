@@ -1,0 +1,1 @@
+This directory is a convenient place to download any MATLAB toolboxes required for Tchain analysis, e.g. RSKtools, that you do not already have. Any subdirectories created here will be ignored by github.
