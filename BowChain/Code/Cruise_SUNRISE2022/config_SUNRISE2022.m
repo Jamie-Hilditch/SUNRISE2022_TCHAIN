@@ -71,7 +71,11 @@ function config = config_SUNRISE2022()
             
             % Read in the metadata
             metadata_file = fullfile(deployments(i).folder,deployments(i).name,'metadata.json');
-            metadata = jsondecode(readfile(metadata_file));
+            fid = fopen(metadata_file); 
+            raw_metadata = fread(fid,inf); 
+            str_metadata = char(raw_metadata'); 
+            fclose(fid);
+            metadata = jsondecode(str_metadata);
 
             % deployment duration
             if isfield(metadata,'deployment_duration')
