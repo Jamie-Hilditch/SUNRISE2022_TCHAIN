@@ -101,13 +101,13 @@ function config = config_SUNRISE2022()
             end
     
             % Set raw_rsk data directory
-            config(ndep).dir_raw = fullfile(deployments(i).folder,deployments(i).name,raw_rsk);
+            config(ndep).dir_raw = fullfile(deployments(i).folder,deployments(i).name,'raw_rsk');
     
             % Set raw_mat data directory
-            config(ndep).dir_proc = fullfile(deployments(i).folder,deployments(i).name,raw_mat);
+            config(ndep).dir_proc = fullfile(deployments(i).folder,deployments(i).name,'raw_mat');
 
             % Set the processed_nc file
-            config(ndep).nc_file = fullfile(vessel_directory,processed_nc,deployments(i).name);
+            config(ndep).nc_file = fullfile(vessel_directory,'processed_nc',deployments(i).name);
 
             % set the gps file
             % config(ndep).file_gps = '';
