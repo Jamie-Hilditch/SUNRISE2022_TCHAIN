@@ -51,12 +51,12 @@ function config = config_SUNRISE2022()
     %         └── processed_nc
     %         └── sections
     
-    vessel_names = ["Aries", "Pelican", "PointSur", "Polly"]
+    vessel_names = ["Aries", "Pelican", "PointSur", "Polly"];
   
     ndep = 0;
     for vessel = vessel_names
         vessel_directory = fullfile(tchain_dir,vessel);
-        deployments = dir(fullfile(vessel_directory,raw,'deploy*'));
+        deployments = dir(fullfile(vessel_directory,'raw','deploy*'));
         for i = 1:length(deployments)
             ndep = ndep + 1;
             config(ndep).name = deployments(i).name;
