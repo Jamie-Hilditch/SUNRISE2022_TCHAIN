@@ -34,7 +34,8 @@ function config = config_SUNRISE2022()
     %             └── deploy_20210618
     %                 └── raw_rsk
     %                 └── raw_mat (Dylan calls these files proc_mat but they're just parsed raw data)
-    %                 └── deployment_info.csv
+    %                 └── metadata.json
+    %                 └── sensors.csv
     %         └── processed_nc (where we save processed files - one netcdf per deployment)
     %         └── sections (individual section files)
     %     └── Pelican
@@ -61,20 +62,39 @@ function config = config_SUNRISE2022()
             config(ndep).name = deployments(i).name;
             config(ndep).vessel = vessel;
             
-            % TODO modify all this commented out code to read in sensor metadata
-            % % Read the sensors.csv file for instrument deployment positions
-            % t = readtable(fullfile(deployments(i).folder,deployments(i).name,'instrument_depths.csv'));
-            % config(ndep).sensor_sn = num2cell(t.serialnum);
-            % config(ndep).sensor_pos = t.depth_m_;
-    
-            % % Try to read start & end time
-            % try
-            %     t = readtable(fullfile(deployments(i).folder,deployments(i).name,'section_start_end_time.csv'));
-            %     config(ndep).dn_range = datenum([t.start_time t.end_time]);
-            % catch err
-            %     % Default to full sensor time range if this fails
-            %     config(ndep).dn_range = [-inf inf];
-            % end
+            
+            % Read the sensors.csv file for instrument deployment positions
+            sensors_csv = fullfile(deployments(i).folder,deployments(i).name,'sensors.csv');
+            t = readtable(sensors_csv,VariableNamingRule="preserve",format='%f%s%f%s%s%u%s');
+            config(ndep).sensor_sn = t{:,'serial number'};
+            config(ndep).sensor_pos = t{:,'depth [m]'};
+            
+            % Read in the metadata
+            metadata_file = fullfile(deployments(i).folder,deployments(i).name,'metadata.json');
+            metadata = jsondecode(readfile(metadata_file));
+
+            % deployment duration
+            if isfield(metadata,'deployment_duration')
+                deployment_duration = datetime(metadata.deployment_duration);
+                config(ndep).dn_range = datenum(deployment_duration);
+                % fallback for bad date formats
+                if isnan(config(ndep).dn_range(1)); 
+                    config(ndep).dn_range(1) = -inf
+                end
+                if isnan(config(ndep).dn_range(2)); 
+                    config(ndep).dn_range(2) = inf
+                end
+            else
+                config(ndep).dn_range = [-inf; inf];
+            end
+
+            % zero_pressure_interval
+            if isfield(metadata,'zero_pressure_interval')
+                zero_pressure_interval = datetime(metadata.deployment_duration);
+                if ~any(isnat(zero_pressure_interval))
+                    config(ndep).zero_pressure_interval = datenum(zero_pressure_interval);
+                end
+            end
     
             % Set raw_rsk data directory
             config(ndep).dir_raw = fullfile(deployments(i).folder,deployments(i).name,raw_rsk);
@@ -84,6 +104,9 @@ function config = config_SUNRISE2022()
 
             % Set the processed_nc file
             config(ndep).nc_file = fullfile(vessel_directory,processed_nc,deployments(i).name);
+
+            % set the gps file
+            % config(ndep).file_gps = '';
         end
     end
     config = fill_defaults(config,global_config);
