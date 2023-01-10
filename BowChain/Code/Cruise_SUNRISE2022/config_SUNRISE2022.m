@@ -65,7 +65,7 @@ function config = config_SUNRISE2022()
             
             % Read the sensors.csv file for instrument deployment positions
             sensors_csv = fullfile(deployments(i).folder,deployments(i).name,'sensors.csv')
-            t = readtable(sensors_csv,VariableNamingRule="preserve",format='%f%s%f%s%s%u%s');
+            t = readtable(sensors_csv,ReadVariableNames,true,VariableNamingRule="preserve",format='%f%s%f%s%s%u%s');
             config(ndep).sensor_sn = t{:,'serial number'};
             config(ndep).sensor_pos = t{:,'depth [m]'};
             
