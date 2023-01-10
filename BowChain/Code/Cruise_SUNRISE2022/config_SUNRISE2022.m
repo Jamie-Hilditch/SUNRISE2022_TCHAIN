@@ -15,7 +15,7 @@ function config = config_SUNRISE2022()
     global_config.chain_model = 'cm_straight';
     % global_config.time_offset_method = 'cohere';
     % global_config.cohere_interval = [dunk_start_time, dunk_end_time];
-    global_config.raw2mat = true; % if true force reparse of data;
+    global_config.raw2mat = false; % if true force reparse of data;
     
     % Get the tchain data directory
     % Use an environment variable rather than user_directories.m
@@ -36,6 +36,7 @@ function config = config_SUNRISE2022()
     %                 └── raw_mat (Dylan calls these files proc_mat but they're just parsed raw data)
     %                 └── metadata.json
     %                 └── sensors.csv
+    %             └── gps.mat (or ShipDas file)
     %         └── processed_nc (where we save processed files - one netcdf per deployment)
     %         └── sections (individual section files)
     %     └── Pelican
@@ -55,12 +56,13 @@ function config = config_SUNRISE2022()
   
     ndep = 0;
     for vessel = vessel_names
+        vessel = char(vessel)
         vessel_directory = fullfile(tchain_dir,vessel);
         deployments = dir(fullfile(vessel_directory,'raw','deploy*'));
         for i = 1:length(deployments)
             ndep = ndep + 1;
             config(ndep).name = deployments(i).name;
-            config(ndep).vessel = char(vessel);
+            config(ndep).vessel = vessel;
             
             
             % Read the sensors.csv file for instrument deployment positions
@@ -109,8 +111,13 @@ function config = config_SUNRISE2022()
             % Set the processed_nc file
             config(ndep).nc_file = fullfile(vessel_directory,'processed_nc',deployments(i).name);
 
-            % set the gps file
-            % config(ndep).file_gps = '';
+            % set the gps files
+            gps_files.Pelican = 'SUNRISE2022_PE_ShipDas_Processed.mat'
+            gps_files.PointSur = 'SUNRISE2022_PS_ShipDas_Processed.mat'
+            
+            if isfield(gps_files,vessel)
+                config(ndep).file_gps = fullfile(vessel_directory,'raw',gps_files.(vessel));
+            end
         end
     end
     config = fill_defaults(config,global_config);
