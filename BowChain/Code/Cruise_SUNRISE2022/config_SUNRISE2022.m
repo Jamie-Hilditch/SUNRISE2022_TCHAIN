@@ -112,8 +112,10 @@ function config = config_SUNRISE2022()
             config(ndep).nc_file = fullfile(vessel_directory,'processed_nc',deployments(i).name);
 
             % set the gps files
+            gps_files.Aries = 'gps.mat'
             gps_files.Pelican = 'SUNRISE2022_PE_ShipDas_Processed.mat'
             gps_files.PointSur = 'SUNRISE2022_PS_ShipDas_Processed.mat'
+            gps_files.Polly = 'gps.mat'
             
             if isfield(gps_files,vessel)
                 config(ndep).file_gps = fullfile(vessel_directory,'raw',gps_files.(vessel));

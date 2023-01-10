@@ -4,6 +4,7 @@
 %  - dn: datenum vector
 %  - lat: latitude vector (deg E)
 %  - lon: longitude vector (deg N)
+% and preferably also
 %  - heading: heading vector (deg T)
 
 function gridded = proc_gps(gridded,cfg)
@@ -14,10 +15,29 @@ if isfield(cfg,'file_gps')
     [~,iu] = unique(gps.dn);
 
     % Interpolate GPS data to sensor time
-    hi = cosd(gps.heading) + 1i*sind(gps.heading);
-    h = mod(180/pi*angle(interp1(gps.dn(iu),hi(iu),gridded.dn)),360);
     lat = interp1(gps.dn(iu),gps.lat(iu),gridded.dn);
     lon = interp1(gps.dn(iu),gps.lon(iu),gridded.dn);
+
+    if isfield(gsp,'heading')
+        hi = cosd(gps.heading) + 1i*sind(gps.heading);
+        h = mod(180/pi*angle(interp1(gps.dn(iu),hi(iu),gridded.dn)),360);
+    else
+        % compute velocity to get heading
+        wgs84 = referenceEllipsoid('wgs84','m');
+        lt0 = nanmean(lat);
+        ln0 = nanmean(lon);
+        lt2y = distance('rh',lt0-0.5,ln0,lt0+0.5,ln0,wgs84); % meters N/S per deg N
+        ln2x = distance('rh',lt0,ln0-0.5,lt0,ln0+0.5,wgs84); % meters E/W per deg W at lat lt0
+        y  =  lt2y * (lat-lt0) ; % meters N/S
+        x  =  ln2x * (lon-ln0) ; % meters E/W
+        dn = gps.dn(iu)
+        dt = diff(dn)*86400;
+        t  = dn(1:end-1) + diff(dn)/2;
+        vx = interp1(t, diff(x)./dt, gridded.dn);
+        vy = interp1(t, diff(y)./dt, gridded.dn);
+        h = mod(90 - 180/pi*atan2(vy,vx),360);
+
+
 
     % Make lat/lon/heading the same size as gridded data
     nsens = length(gridded.pos);
