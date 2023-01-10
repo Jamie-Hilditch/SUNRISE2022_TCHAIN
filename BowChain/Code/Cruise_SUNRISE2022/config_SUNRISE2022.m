@@ -60,7 +60,7 @@ function config = config_SUNRISE2022()
         for i = 1:length(deployments)
             ndep = ndep + 1;
             config(ndep).name = deployments(i).name;
-            config(ndep).vessel = vessel;
+            config(ndep).vessel = char(vessel);
             
             
             % Read the sensors.csv file for instrument deployment positions
