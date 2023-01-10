@@ -2,7 +2,9 @@ function data = parse_rbr_concerto(f_in)
     data = struct();
     [rbr] = RSKopen(f_in);
     tmp = RSKreaddata(rbr);
-    [tmp,~] = RSKcorrecthold(tmp);
+    [tmp,~] = RSKcorrecthold(tmp,channel='Temperature');
+    [tmp,~] = RSKcorrecthold(tmp,channel='Pressure');
+    [tmp,~] = RSKcorrecthold(tmp,channel='Conductivity');
     CT_lag = RSKcalculateCTlag(tmp);
     tmp = RSKalignchannel(tmp, 'channel', 'Conductivity', 'lag', CT_lag);
     tmp = RSKderivesalinity(tmp);
