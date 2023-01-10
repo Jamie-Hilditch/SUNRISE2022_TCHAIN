@@ -73,7 +73,7 @@ serials.rbr_concerto = [060280, 060281, 060088, 060094, 060095, 060559, 060704, 
 fmt.rbr_concerto = '%06s';
 
 % Duet
-serials.rbr_duet = [082489, 082506];
+serials.rbr_duet = [082489, 082506, 207010, 203187, 203188, 203186];
 fmt.rbr_duet = '%06s';
 
 % GusT
