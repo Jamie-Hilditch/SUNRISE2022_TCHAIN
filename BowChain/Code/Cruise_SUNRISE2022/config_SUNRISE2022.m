@@ -15,7 +15,7 @@ function config = config_SUNRISE2022()
     global_config.chain_model = 'cm_straight';
     % global_config.time_offset_method = 'cohere';
     % global_config.cohere_interval = [dunk_start_time, dunk_end_time];
-    global_config.raw2mat = false; % if true force reparse of data;
+    global_config.raw2mat = true; % if true force reparse of data;
     
     % Get the tchain data directory
     % Use an environment variable rather than user_directories.m
