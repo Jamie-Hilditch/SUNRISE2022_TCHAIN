@@ -56,7 +56,7 @@ function config = config_SUNRISE2022()
   
     ndep = 0;
     for vessel = vessel_names
-        vessel = char(vessel)
+        vessel = char(vessel);
         vessel_directory = fullfile(tchain_dir,vessel);
         deployments = dir(fullfile(vessel_directory,'raw','deploy*'));
         for i = 1:length(deployments)
@@ -106,7 +106,7 @@ function config = config_SUNRISE2022()
             if isfield(metadata,'cohere_interval')
                 cohere_interval = datetime(metadata.deployment_duration);
                 if ~any(isnat(cohere_interval))
-                    config(ndep).time_offset_method = 'cohere'
+                    config(ndep).time_offset_method = 'cohere';
                     config(ndep).cohere_interval = datenum(zero_pressure_interval);
                 end
             end
