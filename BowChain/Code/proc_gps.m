@@ -30,12 +30,8 @@ if isfield(cfg,'file_gps')
         ln2x = distance('rh',lt0,ln0-0.5,lt0,ln0+0.5,wgs84); % meters E/W per deg W at lat lt0
         y  =  lt2y * (lat-lt0) ; % meters N/S
         x  =  ln2x * (lon-ln0) ; % meters E/W
-        %dt = diff(gridded.dn)*86400;
-        %t  = gridded.dn(1:end-1) + diff(gridded.dn)/2;
-        %vx = diff(x)./dt;
         vx = gradient(x,gridded.dn);
         vy = gradient(y,gridded.dn);
-        %vy = diff(y)./dt;
         h = mod(90 - 180/pi*atan2(vy,vx),360);
     end
 
@@ -48,9 +44,5 @@ if isfield(cfg,'file_gps')
 
     % Apply positional offsets in the direction of ship motion
     arc = distdim(gridded.x,'meters','degrees','earth'); % convert m to arclength
-    size(lat)
-    size(lon)
-    size(gridded.x)
-    size(h)
     [gridded.lat, gridded.lon] = reckon(lat,lon,gridded.x,h); % apply arclength offset
 end
