@@ -5,8 +5,8 @@ function offset=determine_t_offset(time1,signal1,time2,signal2,trange)
 % Time, time1 & time2, is in days (datenum or yday acceptable).
 
 % Filter the signals to beat down noise
-signal1=medfilt1(signal1,10);
-signal2=medfilt1(signal2,10);
+signal1=medfilt1(signal1,10,nanflag='omitnan',padding='truncate');
+signal2=medfilt1(signal2,10,nanflag='omitnan',padding='truncate');
 
 % Shorten timeseries to the appropriate ranges
 tinds1 = find(time1 >= trange(1) & time1 <= trange(2));
