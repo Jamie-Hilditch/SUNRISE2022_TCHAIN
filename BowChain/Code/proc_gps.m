@@ -33,9 +33,11 @@ if isfield(cfg,'file_gps')
         dn = gps.dn(iu);
         dt = diff(dn)*86400;
         t  = dn(1:end-1) + diff(dn)/2;
-        vx = interp1(t, diff(x)./dt, gridded.dn');
-        vy = interp1(t, diff(y)./dt, gridded.dn');
-        h = mod(90 - 180/pi*atan2(vy,vx),360);
+        vx = diff(x)./dt;
+        vy = diff(y)./dt;
+        vx_grid = interp1(t, vx, gridded.dn);
+        vy_grid = interp1(t, vy, gridded.dn);
+        h = mod(90 - 180/pi*atan2(vy_grid,vx_grid),360);
     end
 
 
