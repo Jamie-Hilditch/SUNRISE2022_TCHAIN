@@ -36,7 +36,7 @@ if isfield(cfg,'file_gps')
         vx = interp1(t, diff(x)./dt, gridded.dn);
         vy = interp1(t, diff(y)./dt, gridded.dn);
         h = mod(90 - 180/pi*atan2(vy,vx),360);
-
+    end
 
 
     % Make lat/lon/heading the same size as gridded data
