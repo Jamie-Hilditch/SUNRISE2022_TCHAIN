@@ -28,8 +28,8 @@ if isfield(cfg,'file_gps')
         ln0 = nanmean(lon);
         lt2y = distance('rh',lt0-0.5,ln0,lt0+0.5,ln0,wgs84); % meters N/S per deg N
         ln2x = distance('rh',lt0,ln0-0.5,lt0,ln0+0.5,wgs84); % meters E/W per deg W at lat lt0
-        y  =  lt2y * (lat-lt0)' ; % meters N/S
-        x  =  ln2x * (lon-ln0)' ; % meters E/W
+        y  =  lt2y * (lat-lt0) ; % meters N/S
+        x  =  ln2x * (lon-ln0) ; % meters E/W
         dt = diff(gridded.dn)*86400;
         t  = gridded.dn(1:end-1) + diff(gridded.dn)/2;
         size(diff(x))
