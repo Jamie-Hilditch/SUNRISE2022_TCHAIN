@@ -101,6 +101,15 @@ function config = config_SUNRISE2022()
                     config(ndep).zero_pressure_interval = datenum(zero_pressure_interval);
                 end
             end
+
+            % cohere_interval
+            if isfield(metadata,'cohere_interval')
+                cohere_interval = datetime(metadata.deployment_duration);
+                if ~any(isnat(cohere_interval))
+                    config(ndep).time_offset_method = 'cohere'
+                    config(ndep).cohere_interval = datenum(zero_pressure_interval);
+                end
+            end
     
             % Set raw_rsk data directory
             config(ndep).dir_raw = fullfile(deployments(i).folder,deployments(i).name,'raw_rsk');
