@@ -1,7 +1,7 @@
 %% proc_gps(gridded,cfg)
 % Compute locations of samples by applying positional offsets to GPS data.
 % cfg.file_gps must point to a .mat file containing the following variables:
-%  - dn: datenum vector
+%  - dn/time: datenum vector
 %  - lat: latitude vector (deg E)
 %  - lon: longitude vector (deg N)
 % and preferably also
@@ -12,6 +12,12 @@ function gridded = proc_gps(gridded,cfg)
 if isfield(cfg,'file_gps')
     % Load gps data
     gps = load(cfg.file_gps);
+
+    % rename fields
+    if isfield(gps,'time')
+        gps = renameStructField(gps,'time','dn');
+    end
+
     [~,iu] = unique(gps.dn);
 
     % Interpolate GPS data to sensor time
