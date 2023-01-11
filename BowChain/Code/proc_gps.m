@@ -15,7 +15,7 @@ if isfield(cfg,'file_gps')
 
     % extract gps from gps
     if isfield(gps,'gps')
-        gps = gps.grs;
+        gps = gps.gps;
     end
     
     % rename fields
