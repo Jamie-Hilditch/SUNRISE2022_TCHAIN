@@ -30,14 +30,11 @@ if isfield(cfg,'file_gps')
         ln2x = distance('rh',lt0,ln0-0.5,lt0,ln0+0.5,wgs84); % meters E/W per deg W at lat lt0
         y  =  lt2y * (lat-lt0)' ; % meters N/S
         x  =  ln2x * (lon-ln0)' ; % meters E/W
-        dn = gps.dn(iu);
-        dt = diff(dn)*86400;
-        t  = dn(1:end-1) + diff(dn)/2;
+        dt = diff(gridded.dn)*86400;
+        t  = gridded.dn(1:end-1) + diff(gridded.dn)/2;
         vx = diff(x)./dt;
         vy = diff(y)./dt;
-        vx_grid = interp1(t, vx, gridded.dn);
-        vy_grid = interp1(t, vy, gridded.dn);
-        h = mod(90 - 180/pi*atan2(vy_grid,vx_grid),360);
+        h = mod(90 - 180/pi*atan2(vy,vx),360);
     end
 
 
