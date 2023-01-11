@@ -96,7 +96,7 @@ function config = config_SUNRISE2022()
 
             % zero_pressure_interval
             if isfield(metadata,'zero_pressure_interval')
-                zero_pressure_interval = datetime(metadata.deployment_duration);
+                zero_pressure_interval = datetime(metadata.zero_pressure_interval);
                 if ~any(isnat(zero_pressure_interval))
                     config(ndep).zero_pressure_interval = datenum(zero_pressure_interval);
                 end
@@ -104,10 +104,10 @@ function config = config_SUNRISE2022()
 
             % cohere_interval
             if isfield(metadata,'cohere_interval')
-                cohere_interval = datetime(metadata.deployment_duration);
+                cohere_interval = datetime(metadata.cohere_interval);
                 if ~any(isnat(cohere_interval))
                     config(ndep).time_offset_method = 'cohere';
-                    config(ndep).cohere_interval = datenum(zero_pressure_interval);
+                    config(ndep).cohere_interval = datenum(cohere_interval);
                 end
             end
     
