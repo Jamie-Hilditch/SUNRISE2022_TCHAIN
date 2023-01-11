@@ -20,7 +20,7 @@ if isfield(cfg,'file_gps')
     
     % rename fields
     if isfield(gps,'time')
-        gps = renameStructField(gps,'time','dn')
+        gps = renameStructField(gps,'time','dn');
     end
 
     [~,iu] = unique(gps.dn);
