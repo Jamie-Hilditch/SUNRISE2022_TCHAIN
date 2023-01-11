@@ -13,6 +13,11 @@ if isfield(cfg,'file_gps')
     % Load gps data
     gps = load(cfg.file_gps);
 
+    % extract gps from gps
+    if isfield(gps,'gps')
+        gps = gps.grs;
+    end
+    
     % rename fields
     if isfield(gps,'time')
         gps = renameStructField(gps,'time','dn')
