@@ -18,7 +18,7 @@ if isfield(cfg,'file_gps')
     lat = interp1(gps.dn(iu),gps.lat(iu),gridded.dn);
     lon = interp1(gps.dn(iu),gps.lon(iu),gridded.dn);
 
-    if isfield(gsp,'heading')
+    if isfield(gps,'heading')
         hi = cosd(gps.heading) + 1i*sind(gps.heading);
         h = mod(180/pi*angle(interp1(gps.dn(iu),hi(iu),gridded.dn)),360);
     else
