@@ -15,6 +15,11 @@ switch cfg.time_offset_method
     % compute and apply offsets to raw data
     offsets = time_offsets_cohere(tcalgrid,data,cfg);
     close all
+  case 'dunk_correlation'
+    disp(sprintf('Calibrating clocks using dunk interval: %s,%s',...
+                 datestr(cfg.dunk_interval(1)),...
+                 datestr(cfg.dunk_interval(2))));
+    offsets = time_offsets_dunk_correlation(data,cfg);
   otherwise
     disp('No time offsets applied')
     apply_offsets = false;
