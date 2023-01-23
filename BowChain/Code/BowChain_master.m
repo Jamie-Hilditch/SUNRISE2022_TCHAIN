@@ -16,24 +16,26 @@ addpath(genpath('ParseFunctions'));   % instrument parsing functions
 addpath(genpath('ChainModels'));      % bow chain shape models
 addpath(genpath('TimeOffsets'));      % Sensor clock offset computation methods
 addpath(genpath('Hooks'));            % Hook functions
+addpath(genpath('SaveOutput'));       % Write output to file
 addpath(genpath(['Cruise_' cruise])); % cruise-specific functions
 
 config = get_config(cruise,varargin{:}); % get processing options
 
-for i = 1:length(config)
+for i = length(config):-1:1 %backwards
     %% Preprocessing
     cfg = config(i);
-    disp(sprintf('Processing deployment: %s',cfg.name));
+    fprintf('Processing deployment: %s\n',cfg.name);
     cfg = preproc_setup(cfg);   % set up filepaths & parse funcs
     preproc_raw2mat(cfg); % convert raw data to .mat files if necessary
     [data, cfg] = proc_load_mat(cfg); % load raw data
-
+    
     %% Main processing
     % 1) Any user-defined preprocessing
     [data, cfg] = post_load_hook(data,cfg);
     % 2) Compute and apply time/pressure offsets to raw data
-    data = proc_time_offsets(data,cfg);
+    [data, offsets] = proc_time_offsets(data,cfg);
     data = proc_pressure_cal(data,cfg);
+   
     % 3) Sample calibrated data onto uniform time base
     gridded(i) = proc_grid_init(data,cfg);
     gridded(i) = post_grid_hook(gridded(i),cfg);
@@ -42,6 +44,8 @@ for i = 1:length(config)
     gridded(i) = post_chain_hook(gridded(i),cfg);
     gridded(i) = proc_gps(gridded(i),cfg);
     gridded(i).info.config = cfg;
+    gridded(i).info.offsets = offsets;
     % 5) Post-processing
     output(i) = postproc_grid_data(gridded(i),cfg);
+    save_tchain_deployment(data,gridded(i),cfg);
 end

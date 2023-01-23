@@ -7,7 +7,7 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
     if isfield(cfg,'time_base_sensor_sn')
         sensor_sn = cfg.time_base_sensor_sn;
     else
-        warning(['No sensor specified as the time base for computing offsets. Using sensor 1.'])
+        warning('No sensor specified as the time base for computing offsets. Using sensor 1.')
         sensor_sn = cfg.sensor_sn{1};
     end
     % serial numbers should be a char array
@@ -27,7 +27,7 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
     if isfield(cfg,'dunk_interval')
         dunk_interval = cfg.dunk_interval;
     else 
-        warning(['No dunk interval specified. No time offsets calculated.'])
+        warning('No dunk interval specified. No time offsets calculated.')
         return 
     end
 
@@ -50,6 +50,42 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
             continue
         end
         disp(['Computing offset for sensor ' num2str(ii)]);
-        offsets(ii) = compute_dunk_offset(data{ii}.dn,data{ii}.t - mean_t,base_dn,base_t);
+        offsets(ii) = compute_dunk_xcorr(data{ii}.dn,data{ii}.t - mean_t,base_dn,base_t);
     end 
+
+    % make a plot of dunk interval before and after offsets
+    fig = figure;
+    ax1 = subplot(2,1,1);
+    hold on
+    ax2 = subplot(2,1,2);
+    hold on
+    for ii = 1:length(offsets)
+        if ii == time_base_index
+            lw = 2;
+            c = 'r';
+        else
+            lw = 0.5;
+            c = 'k';
+        end
+        idx = (data{ii}.dn >= datenum(dunk_interval(1))) & ...
+            (data{ii}.dn <= datenum(dunk_interval(2)));
+        h1 = plot(ax1,datetime(data{ii}.dn(idx),'ConvertFrom','datenum'),data{ii}.t(idx),color=c,linewidth=lw);
+        h2 = plot(ax2,datetime(data{ii}.dn(idx)+offsets(ii),'ConvertFrom','datenum'),data{ii}.t(idx),color=c,linewidth=lw);
+        if ii == time_base_index
+            top1 = h1;
+            top2 = h2;
+        end
+    end
+    uistack(top1,'top')
+    uistack(top2,'top')
+    linkaxes([ax1,ax2])
+    xlim(dunk_interval)
+    xlabel('Time')
+    ylabel(ax1,'T [ degC ]')
+    ylabel(ax2,'T [ degC ]')
+    title(ax1,'Without offsets')
+    title(ax2,'With offsets')
+    % pause(5)
+    uiwait(fig)
+    close all
 end

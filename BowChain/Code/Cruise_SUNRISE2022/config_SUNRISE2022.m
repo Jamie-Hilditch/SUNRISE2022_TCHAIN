@@ -13,15 +13,14 @@ function config = config_SUNRISE2022()
     %% Set some global configurations
     global_config = struct();
     global_config.chain_model = 'cm_straight';
-    % global_config.time_offset_method = 'cohere';
-    % global_config.cohere_interval = [dunk_start_time, dunk_end_time];
+    global_config.freq_base = 2;
     global_config.raw2mat = false; % if true force reparse of data;
     
     % Get the tchain data directory
     % Use an environment variable rather than user_directories.m
     tchain_dir = getenv('SUNRISE2022_TCHAIN_DATA');
     if isempty(tchain_dir); error("Environment variable 'SUNRISE2022_TCHAIN_DATA' not set"); end
-    if exist(tchain_dir) ~= 7; error("'SUNRISE2022_TCHAIN_DATA' is not a directory"); end
+    if ~exist(tchain_dir,'dir'); error("'SUNRISE2022_TCHAIN_DATA' is not a directory"); end
 
 
     %% Create deployment-specific configurations
@@ -55,8 +54,8 @@ function config = config_SUNRISE2022()
     vessel_names = ["Aries", "Pelican", "PointSur", "Polly"];
   
     ndep = 0;
-    for vessel = vessel_names
-        vessel = char(vessel);
+    for vessel_name = vessel_names
+        vessel = char(vessel_name);
         vessel_directory = fullfile(tchain_dir,vessel);
         deployments = dir(fullfile(vessel_directory,'raw','deploy_*'));
         for i = 1:length(deployments)
@@ -98,7 +97,7 @@ function config = config_SUNRISE2022()
             if isfield(metadata,'zero_pressure_interval')
                 zero_pressure_interval = datetime(metadata.zero_pressure_interval);
                 if ~any(isnat(zero_pressure_interval))
-                    config(ndep).zero_pressure_interval = datenum(zero_pressure_interval);
+                    config(ndep).zero_pressure_interval = zero_pressure_interval;
                 end
             end
 
@@ -107,7 +106,7 @@ function config = config_SUNRISE2022()
                 dunk_interval = datetime(metadata.dunk_interval);
                 if ~any(isnat(dunk_interval))
                     config(ndep).time_offset_method = 'dunk_correlation';
-                    config(ndep).dunk_interval = datenum(dunk_interval);
+                    config(ndep).dunk_interval = dunk_interval;
                     config(ndep).time_base_sensor_sn = metadata.time_base_sensor_sn;
                 end
             end
@@ -119,7 +118,7 @@ function config = config_SUNRISE2022()
             config(ndep).dir_proc = fullfile(deployments(i).folder,deployments(i).name,'raw_mat');
 
             % Set the processed_nc file
-            config(ndep).nc_file = fullfile(vessel_directory,'processed_nc',deployments(i).name);
+            config(ndep).nc_file = fullfile(vessel_directory,'processed_nc',[deployments(i).name '.nc']);
 
             % set the gps files
             gps_files.Aries = 'gps.mat';

@@ -20,7 +20,7 @@ end
 % Subsample/interpolate all data onto intermediate time base
 for i = 1:length(data)
     % Determine interpolation method based on sampling period
-    perd_sens = nanmean(diff(data{i}.dn));
+    perd_sens = mean(diff(data{i}.dn),'omitnan');
     if perd_sens <= perd_base
         interp_method = 'nearest';
     else
@@ -28,9 +28,13 @@ for i = 1:length(data)
     end
 
     % Interpolate data onto base_time
+    [~,idx] = unique(data{i}.dn);
+    t_idx = false(N,1);
+    t_idx(idx) = true;
     for f = 1:length(flds)
         if isfield(data{i},flds{f})
-            [~,idx] = unique(data{i}.dn);
+            d_idx = isfinite(data{i}.(flds{f}));
+            idx = (t_idx & d_idx);
             gridded.(flds{f})(i,:) = ...
                 interp1(data{i}.dn(idx),data{i}.(flds{f})(idx),gridded.dn,...
                         interp_method);
