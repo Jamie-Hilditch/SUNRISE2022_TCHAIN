@@ -49,12 +49,16 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
             % skip base time
             continue
         end
-        disp(['Computing offset for sensor ' num2str(ii)]);
-        offsets(ii) = compute_dunk_xcorr(data{ii}.dn,data{ii}.t - mean_t,base_dn,base_t);
+        fprintf('\tComputing offset for sensor %02d ... ', ii);
+        disp_fig = isfield(cfg,'display_figures') && cfg.display_figures;
+        offsets(ii) = compute_dunk_xcorr(data{ii}.dn,data{ii}.t - mean_t,base_dn,base_t,disp_fig);
     end 
 
+    % close any figures we might have made
+    close all
+
     % make a plot of dunk interval before and after offsets
-    fig = figure;
+    fig = figure(visible='off',Units='Normalized',OuterPosition=[0,0,1,1]);
     ax1 = subplot(2,1,1);
     hold on
     ax2 = subplot(2,1,2);
@@ -85,7 +89,13 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
     ylabel(ax2,'T [ degC ]')
     title(ax1,'Without offsets')
     title(ax2,'With offsets')
-    % pause(5)
-    uiwait(fig)
-    close all
+    sgtitle('Dunk Interval')
+    % save figure
+    if isfield(cfg,'dir_fig') && ~isempty(cfg.dir_fig)
+        print(fig,fullfile(cfg.dir_fig,'time_offsets.png'),'-dpng','-r600')
+    end
+    % display figure until closed
+    if isfield(cfg,'display_figures') && cfg.display_figures
+        uiwait(fig)
+    end
 end

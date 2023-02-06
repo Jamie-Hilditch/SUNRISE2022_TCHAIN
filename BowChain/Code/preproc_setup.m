@@ -5,7 +5,7 @@ conig.sensors = struct();
 
 setup_override_fname = ['setup_override_' config.cruise];
 if exist(setup_override_fname) == 2
-    fprintf('  Overriding default setup with %s.\n',setup_override_fname)
+    fprintf('\tOverriding default setup with %s.\n',setup_override_fname)
     config = feval(setup_override_fname,config);
     return
 end
@@ -42,13 +42,13 @@ for i = 1:length(config.sensor_sn)
                 'parse_func'  , parse_func                  ,...
                 'pos'         , config.sensor_pos(i)        ,...
                 'pos_ind'     , pos_ind);
-            msg = '  %s [%s]';
-            disp(sprintf(msg,sensor_type,sn));
+            msg = '\t%s [%s]\n';
+            fprintf(msg,sensor_type,sn);
         else
-            msg = '%s [%s]: %d raw file(s), skipped!';
-            disp(sprintf(msg,sensor_type,sn,length(file_raw)));
+            msg = '\t%s [%s]: %d raw file(s), skipped!\n';
+            fprintf(msg,sensor_type,sn,length(file_raw));
         end
     else
-        disp(sprintf('  No sensor information found for [%s]',sn))
+        fprintf('\tNo sensor information found for [%s]\n',sn)
     end
 end

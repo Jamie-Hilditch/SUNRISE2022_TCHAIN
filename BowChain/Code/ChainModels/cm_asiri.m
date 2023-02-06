@@ -1,5 +1,7 @@
 function gridded = cm_asiri(gridded,cfg)
 
+fprintf('Using asiri chain model\n')
+
 % Assume the chain is comprised of straight segments divided by pressure
 % sensors. Interpolate/extrapolate depth to other sensors, compute lateral
 % offsets based on known depths and chain positions.

@@ -1,10 +1,7 @@
-function offset = compute_dunk_xcorr(dn,temp,base_dn,base_t)
+function offset = compute_dunk_xcorr(dn,temp,base_dn,base_t,display_figure)
     
     % time spacing of base 
     dt = mean(diff(base_dn));
-
-    % normalisation
-    norm = mean(base_t.^2);
 
     % for converting dn to secs
     days2seconds = 60*60*24;
@@ -26,11 +23,18 @@ function offset = compute_dunk_xcorr(dn,temp,base_dn,base_t)
     lag_idx = lags(idx);
     offset = lag_idx*dt;
 
-    % make a quick plot
-    plot(lags*dt*days2seconds,r/norm,'b-',offset*days2seconds,max_r/norm,'kx');
-    xlabel('Offset [s]');
-    ylabel('Normalised X-corr');
-    pause(0.5);
+    if abs(lag_idx) == maxlag
+        warning('Maximum correlation found on boundary')
+    end
 
-    disp(['Offset = ' num2str(offset*days2seconds) 's Correlation = ' num2str(max_r/norm)]);
+    % make a quick plot
+    % plot(lags*dt*days2seconds,r/norm,'b-',offset*days2seconds,max_r/norm,'kx');
+    if display_figure
+        plot(lags*dt*days2seconds,r,'b-',offset*days2seconds,max_r,'kx');
+        xlabel('Offset [s]');
+        ylabel('Normalised X-corr');
+        pause(0.5);
+    end
+
+    disp(['Offset = ' num2str(offset*days2seconds) 's Correlation = ' num2str(max_r)]);
 end

@@ -28,13 +28,14 @@ if isfield(cfg,'file_gps')
     % Interpolate GPS data to sensor time
     lat = interp1(gps.dn(iu),gps.lat(iu),gridded.dn);
     lon = interp1(gps.dn(iu),gps.lon(iu),gridded.dn);
-
+    
+    wgs84 = referenceEllipsoid('wgs84','m');
     if isfield(gps,'heading')
         hi = cosd(gps.heading) + 1i*sind(gps.heading);
         h = mod(180/pi*angle(interp1(gps.dn(iu),hi(iu),gridded.dn)),360);
     else
         % compute velocity to get heading
-        wgs84 = referenceEllipsoid('wgs84','m');
+        
         lt0 = nanmean(lat);
         ln0 = nanmean(lon);
         lt2y = distance('rh',lt0-0.5,ln0,lt0+0.5,ln0,wgs84); % meters N/S per deg N
@@ -54,6 +55,7 @@ if isfield(cfg,'file_gps')
     lon = repmat(lon,nsens,1);
 
     % Apply positional offsets in the direction of ship motion
-    arc = distdim(gridded.x,'meters','degrees','earth'); % convert m to arclength
-    [gridded.lat, gridded.lon] = reckon(lat,lon,gridded.x,h); % apply arclength offset
+    % arc = distdim(gridded.x,'meters','degrees','earth'); % convert m to arclength
+    %[gridded.lat, gridded.lon] = reckon(lat,lon,gridded.x,h); % apply arclength offset
+    [gridded.lat, gridded.lon] = reckon(lat,lon,gridded.x,h,wgs84); % apply arclength offset
 end

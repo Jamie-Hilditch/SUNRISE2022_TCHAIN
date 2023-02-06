@@ -33,18 +33,19 @@ for i = length(config):-1:1 %backwards
     % 1) Any user-defined preprocessing
     [data, cfg] = post_load_hook(data,cfg);
     % 2) Compute and apply time/pressure offsets to raw data
-    [data, offsets] = proc_time_offsets(data,cfg);
-    data = proc_pressure_cal(data,cfg);
+    [data, time_offsets] = proc_time_offsets(data,cfg);
+    [data, pressure_offsets] = proc_pressure_cal(data,cfg);
    
     % 3) Sample calibrated data onto uniform time base
-    gridded(i) = proc_grid_init(data,cfg);
+    [gridded(i), cfg] = proc_grid_init(data,cfg);
     gridded(i) = post_grid_hook(gridded(i),cfg);
     % 4) Compute positional offsets using chain shape model
     gridded(i) = proc_chain_model(gridded(i),cfg);
     gridded(i) = post_chain_hook(gridded(i),cfg);
     gridded(i) = proc_gps(gridded(i),cfg);
     gridded(i).info.config = cfg;
-    gridded(i).info.offsets = offsets;
+    gridded(i).info.time_offsets = time_offsets;
+    gridded(i).info.pressure_offsets = pressure_offsets;
     % 5) Post-processing
     output(i) = postproc_grid_data(gridded(i),cfg);
     save_tchain_deployment(data,gridded(i),cfg);

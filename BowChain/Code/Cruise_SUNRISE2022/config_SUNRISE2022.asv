@@ -12,7 +12,7 @@ function config = config_SUNRISE2022()
 
     %% Set some global configurations
     global_config = struct();
-    global_config.chain_model = 'cm_straight'; %'cm_straight';
+    global_config.chain_model = 'cm_catenary'; %'cm_straight';
     global_config.freq_base = 2;
     global_config.bin_method = 'none';
     global_config.raw2mat = false; % if true force reparse of data;

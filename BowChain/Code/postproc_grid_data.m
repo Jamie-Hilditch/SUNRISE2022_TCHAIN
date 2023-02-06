@@ -6,6 +6,9 @@ if ~isfield(cfg,'bin_method')
     warning('No bin method specified. Returning point cloud!')
 end
 
+% return if bin method is none
+if cfg.bin_method == 'none'; return; end
+
 %% Check for valid GPS data
 if isfield(cfg,'file_gps') % Make sure we have a GPS file specified
     gps = load(cfg.file_gps);

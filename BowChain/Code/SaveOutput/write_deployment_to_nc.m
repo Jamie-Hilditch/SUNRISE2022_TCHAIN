@@ -7,7 +7,8 @@ function write_deployment_to_nc(data,gridded,cfg)
     long_names.time = "Time";
     long_names.dn = "datenum";
     long_names.pos = "Position on chain";
-    long_names.offsets = "Time offsets applied";
+    long_names.time_offsets = "Time offsets applied";
+    long_names.pressure_offsets = "Pressure offsets applied";
     long_names.t = "Temperature";
     long_names.p = "Pressure";
     long_names.c = "Conductivity";
@@ -21,7 +22,8 @@ function write_deployment_to_nc(data,gridded,cfg)
     units.time = "seconds since 1970-01-01 0:0:0";
     units.dn = "MATLAB datenum";
     units.pos = "m";
-    units.offsets = "days";
+    units.time_offsets = "days";
+    units.pressure_offsets = "dbar";
     units.t = "degC";
     units.p = "dbar";
     units.c = "mS/cm";
@@ -52,9 +54,11 @@ function write_deployment_to_nc(data,gridded,cfg)
     time_id = netcdf.defVar(grid_id,'time','NC_DOUBLE',time_dim_id);
     dn_id = netcdf.defVar(grid_id,'dn','NC_DOUBLE',time_dim_id);
     pos_id = netcdf.defVar(grid_id,'pos','NC_DOUBLE',sensor_dim_id);
-    offsets_id = netcdf.defVar(grid_id,'offsets','NC_DOUBLE',sensor_dim_id);
+    time_offsets_id = netcdf.defVar(grid_id,'time_offsets','NC_DOUBLE',sensor_dim_id);
+    pressure_offsets_id = netcdf.defVar(grid_id,'pressure_offsets','NC_DOUBLE',sensor_dim_id);
     sensor_sn_id = netcdf.defVar(grid_id,'sensor_sn','NC_STRING',sensor_dim_id);
     sensor_type_id = netcdf.defVar(grid_id,'sensor_type','NC_STRING',sensor_dim_id);
+    sensor_interp_id = netcdf.defVar(grid_id,'sensor_interp_method','NC_STRING',sensor_dim_id);
     
     % get cell array of variable names
     fields = fieldnames(gridded);
@@ -74,13 +78,15 @@ function write_deployment_to_nc(data,gridded,cfg)
     netcdf.putAtt(grid_id,time_id,'long_name',long_names.time,'NC_STRING');
     netcdf.putAtt(grid_id,dn_id,'long_name',long_names.dn,'NC_STRING');
     netcdf.putAtt(grid_id,pos_id,'long_name',long_names.pos,'NC_STRING');
-    netcdf.putAtt(grid_id,offsets_id,'long_name',long_names.offsets,'NC_STRING');
+    netcdf.putAtt(grid_id,time_offsets_id,'long_name',long_names.time_offsets,'NC_STRING');
+    netcdf.putAtt(grid_id,pressure_offsets_id,'long_name',long_names.pressure_offsets,'NC_STRING');
     cellfun(@(varid,name) netcdf.putAtt(grid_id,varid,'long_name',long_names.(name),'NC_STRING'),var_ids,vars);
     % units
     netcdf.putAtt(grid_id,time_id,'units',units.time,'NC_STRING');
     netcdf.putAtt(grid_id,dn_id,'units',units.dn,'NC_STRING');
     netcdf.putAtt(grid_id,pos_id,'units',units.pos,'NC_STRING');
-    netcdf.putAtt(grid_id,offsets_id,'units',units.offsets,'NC_STRING');
+    netcdf.putAtt(grid_id,time_offsets_id,'units',units.time_offsets,'NC_STRING');
+    netcdf.putAtt(grid_id,pressure_offsets_id,'units',units.pressure_offsets,'NC_STRING');
     cellfun(@(varid,name) netcdf.putAtt(grid_id,varid,'units',units.(name),'NC_STRING'),var_ids,vars);
 
     % optional variables
@@ -113,6 +119,7 @@ function write_deployment_to_nc(data,gridded,cfg)
     putAtt('dir_raw','NC_STRING');
     putAtt('dir_proc','NC_STRING');
     putAtt('nc_file','NC_STRING');
+    putAtt('dir_fig','NC_STRING');
     putAtt('file_gps','NC_STRING');
     putAtt('time_offset_method','NC_STRING');
     putAttDatetime('dunk_interval');
@@ -144,9 +151,11 @@ function write_deployment_to_nc(data,gridded,cfg)
     netcdf.putVar(grid_id,time_id,posixtime(datetime(gridded.dn,'ConvertFrom','datenum')));
     netcdf.putVar(grid_id,dn_id,gridded.dn);
     netcdf.putVar(grid_id,pos_id,gridded.pos);
-    netcdf.putVar(grid_id,offsets_id,gridded.info.offsets);
+    netcdf.putVar(grid_id,time_offsets_id,gridded.info.time_offsets);
+    netcdf.putVar(grid_id,pressure_offsets_id,gridded.info.pressure_offsets);
     netcdf.putVar(grid_id,sensor_sn_id,string({cfg.sensors(:).sn}));
     netcdf.putVar(grid_id,sensor_type_id,string({cfg.sensors(:).sensor_type}));
+    netcdf.putVar(grid_id,sensor_interp_id,string({cfg.sensors(:).interp_method}));
     cellfun(@(varid,name) netcdf.putVar(grid_id,varid,gridded.(name)),var_ids,vars);
 
     % optional variables
@@ -194,8 +203,12 @@ function write_deployment_to_nc(data,gridded,cfg)
         netcdf.putAtt(grp_id,global_id,'sensor_type',cfg.sensors(ii).sensor_type,'NC_STRING');
         netcdf.putAtt(grp_id,global_id,'position_on_chain',cfg.sensors(ii).pos,'NC_DOUBLE');
         netcdf.putAtt(grp_id,global_id,'position_units',units.pos,'NC_STRING');
-        netcdf.putAtt(grp_id,global_id,'time_offset_applied',gridded.info.offsets(ii),'NC_DOUBLE');
-        netcdf.putAtt(grp_id,global_id,'time_offset_units',units.offsets,'NC_STRING');
+        netcdf.putAtt(grp_id,global_id,'time_offset_applied',gridded.info.time_offsets(ii),'NC_DOUBLE');
+        netcdf.putAtt(grp_id,global_id,'time_offset_units',units.time_offsets,'NC_STRING');
+        if isfield(data{ii},'p')
+            netcdf.putAtt(grp_id,global_id,'pressure_offset_applied',gridded.info.pressure_offsets(ii),'NC_DOUBLE');
+            netcdf.putAtt(grp_id,global_id,'pressure_offset_units',units.pressure_offsets,'NC_STRING');
+        end
         netcdf.putAtt(grp_id,global_id,'raw_rsk_file',cfg.sensors(ii).file_raw,'NC_STRING');
         netcdf.putAtt(grp_id,global_id,'raw_mat_file',cfg.sensors(ii).file_mat,'NC_STRING');
 
@@ -209,6 +222,6 @@ function write_deployment_to_nc(data,gridded,cfg)
     end
    
     % close file
-    netcdf.close(ncid);
+    clear cleanup_obj
 
 end

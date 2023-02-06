@@ -21,16 +21,17 @@ switch cfg.time_offset_method
                  cfg.dunk_interval(2));
     offsets = time_offsets_dunk_correlation(data,cfg);
   otherwise
-    disp('No time offsets applied')
+    fprintf('No time offsets applied\n')
     offsets = zeros(length(data),1);
     apply_offsets = false;
 end
 
 % Apply offsets
 if apply_offsets
+    fprintf('Applying time offsets\n')
     for i = 1:length(data)
         data{i}.dn = data{i}.dn + offsets(i);
-        fprintf('Removed %.2fs time offset from %s\n',...
+        fprintf('\tRemoved %.2fs time offset from %s\n',...
                      offsets(i)*86400,data{i}.sn)
     end
 end

@@ -1,5 +1,7 @@
 function gridded = cm_straight(gridded,cfg)
 
+fprintf('Using straight chain model\n')
+
 % Assume the chain is completely straight. Calculate vertical positions by
 % interpolating pressure vs. position.
 hasP = ~all(isnan(gridded.p),2);
