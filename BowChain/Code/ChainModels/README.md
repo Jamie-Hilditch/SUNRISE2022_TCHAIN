@@ -59,7 +59,9 @@ $$ \begin{pmatrix} b \\ c \end{pmatrix} = \mathbf{A}^{-1}\mathbf{y} $$
 where 
 
 $$ \mathbf{A} = \begin{pmatrix}
-    s_1 & z'_1 \\ s_2 & z'_2 \end{pmatrix}, \quad 
+    s_1 & z'_1 \\
+    s_2 & z'_2 \\
+    \end{pmatrix}, \quad 
     \mathbf{y} = \frac{1}{2}\begin{pmatrix}s_1^2 - {z'}_1^2 \\
         s_2^2 - {z'}_2^2 \end{pmatrix} $$
 
