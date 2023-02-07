@@ -4,22 +4,18 @@ function gridded = cm_catenary(gridded,~)
 
     fprintf('Using catenary chain model. This may take a while ...\n')
 
-%     % get z0 (z coordinate of the start of the catenary)
-%     if isfield(cfg,'catenary_z0') && ~isempty(cfg.catenary_z0)
-%         z0 = cfg.catenary_z0;
-%     else
-%         z0 = 0;
-%     end
-
     % define z' as a function of s,b,c
     zprime = @(s,b,c) sqrt(s.^2 - 2*b.*s + c.^2) - c;
 
     % define a function to compute b,c exactly from two points
     function [ b,c ] = bc_exact(s1,zp1,s2,zp2)
         A = [s1,zp1;s2,zp2];
-        y = [s1^2 - zp1^2; s2^2 - zp2^2]/2;
-        x = y\A;
+        y = [(s1^2 - zp1^2)/2; (s2^2 - zp2^2)/2];
+        x = A\y;
         b = x(1); c = x(2);
+        if b < 0 || c < b
+            b = nan; c= nan;
+        end
     end
 
     % now define the function to be minimised
@@ -86,8 +82,8 @@ function gridded = cm_catenary(gridded,~)
         % initial condition for the minimisation will be median of exact values
         b0 = median(b_exact,'omitnan');
         c0 = median(c_exact,'omitnan');
-        if b0 < bmin; b0 = bmin*1.1; end
-        if c0 < b0; c0 = b0*1.1; end
+        if isnan(b0) || b0 < bmin; b0 = bmin*1.1; end
+        if isnan(c0) || c0 < b0; c0 = b0*1.1; end
 
         % function to be minimised
         func = @(x) squared_error_handle(x(1),x(2),s,zp);
@@ -116,9 +112,14 @@ function gridded = cm_catenary(gridded,~)
             continue
         end
         
-        % get b,c, a and s0
+        % get b,c and rms_error
         b = x(1);
         c = x(2);
+        rms_error = sqrt(fval);
+
+        % compute a and s0
+        if b <= bmin; continue; end % b must be larger than the chain
+        if b > c; continue; end % otherwise a is complex
         a = sqrt(c^2 - b^2);
         s0 = (b - sqrt(b^2 + 4*z0^2 -8*z0*c))/2;
 
@@ -126,7 +127,7 @@ function gridded = cm_catenary(gridded,~)
         catenary_a(i) = a;
         catenary_b(i) = b;
         catenary_c(i) = c;
-        catenary_rms_error(i) = sqrt(fval);
+        catenary_rms_error(i) = rms_error;
         catenary_z0(i) = z0;
         catenary_s0(i) = s0;
 
@@ -137,7 +138,10 @@ function gridded = cm_catenary(gridded,~)
 
         
     end
-    
+
+    % for debugging
+    % keyboard
+
     % now save x and z positions 
     gridded.x = x_grid;
     gridded.z = z_grid;
