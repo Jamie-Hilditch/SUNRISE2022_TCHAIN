@@ -50,11 +50,14 @@ Given two points, $(s_1,z'_1)$ and $(s_2,z'_2)$, on the catenary we can solve fo
 
 $$ (z'_i + c)^2 = s_i^2 -2b s_i + c^2 $$
 
-$$ {z'}_i^2 + 2z_i c = s_i^2 - 2s_i b $$
+$$ {z'_i}^2 + 2z_i c = s_i^2 - 2s_i b $$
 
-$$s_i b + z'_i c = \frac{1}{2}s_i^2 - {z'}_i^2 $$
+$$s_i b + z'_i c = \frac{1}{2}\left(s_i^2 - {z'_i}^2\right) $$
 
-$$ \begin{pmatrix} b \\ c \end{pmatrix} = \mathbf{A}^{-1}\mathbf{y} $$
+$$ \begin{pmatrix} 
+   b \\
+   c \\
+   \end{pmatrix} = \mathbf{A}^{-1}\mathbf{y} $$
 
 where 
 
@@ -62,8 +65,8 @@ $$ \mathbf{A} = \begin{pmatrix}
     s_1 & z'_1 \\
     s_2 & z'_2 \\
     \end{pmatrix}, \quad 
-    \mathbf{y} = \frac{1}{2}\begin{pmatrix}s_1^2 - {z'}_1^2 \\
-        s_2^2 - {z'}_2^2 \end{pmatrix} $$
+    \mathbf{y} = \frac{1}{2}\begin{pmatrix}s_1^2 - {z'_1}^2 \\
+        s_2^2 - {z'_2}^2 \end{pmatrix} $$
 
 Finally, we need to solve for $x_0$. We specify that the catenary passes through $x = 0$, $z = 0$ at some $s = s_0 < 0$. Therefore, $s_0$ satisfies 
 
@@ -83,7 +86,7 @@ $$ x = a\left(\mathrm{arcsinh}\left(\frac{b - s_0}{a}\right) - \mathrm{arcsinh}\
 
 ### Numerical Solution
 
-Given some points, $(s_i, z'_i)$, $i = 1 , ..., N $ with $N > 2$, on the chain, not including the first pressure sensor, we need to find the values of $b$ and $c$ that minimise 
+Given some points, $(s_i, z'_i)$, $ i = 1$ , ..., $ N $ with $N > 2$, on the chain, not including the first pressure sensor, we need to find the values of $b$ and $c$ that minimise 
 
 $$ r = \frac{1}{N}\sum_{i = 1}^N (z'(s_i) - z'_i)^2 $$
 
