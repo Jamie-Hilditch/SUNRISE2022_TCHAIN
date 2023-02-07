@@ -81,7 +81,7 @@ $$ x = a\left(\mathrm{arcsinh}\left(\frac{b - s_0}{a}\right) - \mathrm{arcsinh}\
 
 ### Numerical Solution
 
-Given some points, $(s_i, z'_i)$, $i = 1 , \dots, N $ with $N > 2$, on the chain, not including the first pressure sensor, we need to find the values of $b$ and $c$ that minimise 
+Given some points, $(s_i, z'_i)$, $i = 1 , ..., N $ with $N > 2$, on the chain, not including the first pressure sensor, we need to find the values of $b$ and $c$ that minimise 
 
 $$ r = \frac{1}{N}\sum_{i = 1}^N (z'(s_i) - z'_i)^2 $$
 
