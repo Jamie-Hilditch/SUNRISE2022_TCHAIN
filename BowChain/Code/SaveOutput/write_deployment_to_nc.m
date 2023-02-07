@@ -17,7 +17,12 @@ function write_deployment_to_nc(data,gridded,cfg)
     long_names.z = "Vertical displacement";
     long_names.lat = "Latitude";
     long_names.lon = "Longitude";
-    long_names.catenary_a = "Catenary length scale";
+    long_names.catenary_a = "Catenary length scale a";
+    long_names.catenary_b = "Catenary length scale b";
+    long_names.catenary_c = "Catenary length scale c";
+    long_names.catenary_rms_error = "RMS error in z from catenary fit";
+    long_names.catenary_z0 = "z coordinate of first pressure sensor";
+    long_names.catenary_s0 = "Catenary arclength from first pressure sensor to surface";
     % units
     units.time = "seconds since 1970-01-01 0:0:0";
     units.dn = "MATLAB datenum";
@@ -33,6 +38,11 @@ function write_deployment_to_nc(data,gridded,cfg)
     units.lat = "degrees_north";
     units.lon = "degrees_east";
     units.catenary_a = "m";
+    units.catenary_b = "m";
+    units.catenary_c = "m";
+    units.catenary_rms_error = "m";
+    units.catenary_z0 = "m";
+    units.catenary_s0 = "m";
     
     % create a netcdf4 file overwriting (CLOBBER) an existing file
     cmode = bitor(netcdf.getConstant('NETCDF4'),netcdf.getConstant('CLOBBER'));
@@ -94,6 +104,31 @@ function write_deployment_to_nc(data,gridded,cfg)
         catenary_a_id = netcdf.defVar(grid_id,'catenary_a','NC_DOUBLE',time_dim_id);
         netcdf.putAtt(grid_id,catenary_a_id,'long_name',long_names.catenary_a,'NC_STRING');
         netcdf.putAtt(grid_id,catenary_a_id,'units',units.catenary_a,'NC_STRING');
+    end
+    if isfield(gridded.info,'catenary_b')
+        catenary_b_id = netcdf.defVar(grid_id,'catenary_b','NC_DOUBLE',time_dim_id);
+        netcdf.putAtt(grid_id,catenary_b_id,'long_name',long_names.catenary_b,'NC_STRING');
+        netcdf.putAtt(grid_id,catenary_b_id,'units',units.catenary_b,'NC_STRING');
+    end
+    if isfield(gridded.info,'catenary_c')
+        catenary_c_id = netcdf.defVar(grid_id,'catenary_c','NC_DOUBLE',time_dim_id);
+        netcdf.putAtt(grid_id,catenary_c_id,'long_name',long_names.catenary_c,'NC_STRING');
+        netcdf.putAtt(grid_id,catenary_c_id,'units',units.catenary_c,'NC_STRING');
+    end
+    if isfield(gridded.info,'catenary_rms_error')
+        catenary_rms_error_id = netcdf.defVar(grid_id,'catenary_rms_error','NC_DOUBLE',time_dim_id);
+        netcdf.putAtt(grid_id,catenary_rms_error_id,'long_name',long_names.catenary_rms_error,'NC_STRING');
+        netcdf.putAtt(grid_id,catenary_rms_error_id,'units',units.catenary_rms_error,'NC_STRING');
+    end
+    if isfield(gridded.info,'catenary_z0')
+        catenary_z0_id = netcdf.defVar(grid_id,'catenary_z0','NC_DOUBLE',time_dim_id);
+        netcdf.putAtt(grid_id,catenary_z0_id,'long_name',long_names.catenary_z0,'NC_STRING');
+        netcdf.putAtt(grid_id,catenary_z0_id,'units',units.catenary_z0,'NC_STRING');
+    end
+    if isfield(gridded.info,'catenary_s0')
+        catenary_s0_id = netcdf.defVar(grid_id,'catenary_s0','NC_DOUBLE',time_dim_id);
+        netcdf.putAtt(grid_id,catenary_s0_id,'long_name',long_names.catenary_s0,'NC_STRING');
+        netcdf.putAtt(grid_id,catenary_s0_id,'units',units.catenary_s0,'NC_STRING');
     end
 
     % create global attributes with configuration data for both gridded and

@@ -1,8 +1,8 @@
-function gridded = cm_catenary(gridded,~)
+function gridded = cm_catenary(gridded,cfg)
     % fits a catenary to the pressure sensors
     % details of the method can be found in the README.md file
 
-    fprintf('Using catenary chain model. This may take a while ...\n')
+    fprintf('Using catenary chain model. This may take a while.\n')
 
 %     % get z0 (z coordinate of the start of the catenary)
 %     if isfield(cfg,'catenary_z0') && ~isempty(cfg.catenary_z0)
@@ -43,7 +43,6 @@ function gridded = cm_catenary(gridded,~)
     % define arrays for results
     Ntimes = length(gridded.dn);
     catenary_z0 = nan(1,Ntimes);
-    catenary_s0 = nan(1,Ntimes);
     catenary_a = nan(1,Ntimes);
     catenary_b = nan(1,Ntimes);
     catenary_c = nan(1,Ntimes);
@@ -52,26 +51,21 @@ function gridded = cm_catenary(gridded,~)
     % exact variables for parfor loop
     pressure = gridded.p;
     pos = gridded.pos;
-    x_grid = nan(size(gridded.x));
-    z_grid = nan(size(gridded.x));
 
-    % for each timestep (parallelise the for loop because this can be really slow)
+    % b must be larger than last pos
+    bmin = pos(end);
+
+    % for each timestep
     parfor i = 1:Ntimes
-        % get the pressure sensors
+        % get the pressure sensor z' and s
         p = pressure(:,i);
         hasp = ~isnan(p);
         z = -p(hasp);
-        if length(z) < 3; continue; end % not enough sensors to fit catenary
-        z0 = z(1); % first pressure sensor
-        if z0 > 0; continue;  end % sensor is out of the water
-        zp = z(2:end) - z0; % fit to remaining pressure sensors
-        ppos = pos(hasp); % position of pressure sensors on chain
-        s = ppos(2:end) - ppos(1); % define s = 0 at first pressure sensor
-        
-        % b - s > 0 on chain
-        bmin = s(end)
+        z0 = z(1);
+        zp = z - z0;
+        s = pos(hasp);
 
-        % compute the exact b and c for every pair of remaining pressure sensors
+        % compute the exact b and c for every pair of sensors
         Npressure = length(zp);
         b_exact = nan(Npressure*(Npressure-1)/2,1);
         c_exact = nan(Npressure*(Npressure-1)/2,1);
@@ -109,48 +103,33 @@ function gridded = cm_catenary(gridded,~)
             warning(ME.message)
             continue
         end
-        % if unsuccessful continue without saving values
-        if exitflag <= 0
+        if exitflag > 0
+            catenary_a(i) = sqrt(x(2)^2 - x(1)^2);
+            catenary_b(i) = x(1);
+            catenary_c(i) = x(2);
+            catenary_rms_error(i) = sqrt(fval);
+        else
             fprintf('i = %06d: Exited with exitflag %d and message %s\n', ...
                 i,exitflag,output.message);
-            continue
         end
         
-        % get b,c, a and s0
-        b = x(1);
-        c = x(2);
-        a = sqrt(c^2 - b^2);
-        s0 = (b - sqrt(b^2 + 4*z0^2 -8*z0*c))/2;
-
-        % save values
-        catenary_a(i) = a;
-        catenary_b(i) = b;
-        catenary_c(i) = c;
-        catenary_rms_error(i) = sqrt(fval);
-        catenary_z0(i) = z0;
-        catenary_s0(i) = s0;
-
-        % compute z and x
-        s = pos - ppos(1); % need all the sensor positions
-        x_grid(:,i) = a*(asinh((b - s0)/a) - asinh((b - s)/a));
-        z_grid(:,i) = sqrt(s.^2 -2*b*s + c^2) - c + z0;
-
         
+%         % update progress
+%         if ~mod(i,int32(Ntimes/100))
+%             fprintf('\tComputing catenary chain shapes (%.2f%%)\n',100*i/Ntimes)
+%         end
+
     end
     
-    % now save x and z positions 
-    gridded.x = x_grid;
-    gridded.z = z_grid;
+    % now compute x and z positions 
+    gridded.x = catenary_a.*(asinh(catenary_b./catenary_a) - asinh((catenary_b - gridded.pos)./catenary_a));
+    gridded.z = zprime(gridded.pos,catenary_b,catenary_c) + z0;
 
     % save info
     gridded.info.catenary_a = catenary_a;
     gridded.info.catenary_b = catenary_b;
     gridded.info.catenary_c = catenary_c;
     gridded.info.catenary_rms_error = catenary_rms_error;
-    gridded.info.catenary_z0 = catenary_z0;
-    gridded.info.catenary_s0 = catenary_s0;
-    gridded.info.catenary_s_to_x = 'a(asinh(b-s0/a) - asinh((b-s)/a))';
-    gridded.info.catenary_s_to_z = 'z0 + (a^2 + (b^2 - s^2))^0.5 - (a^2 + b^2)^0.5';
-
-    fprintf('Done!\n')
+    gridded.info.catenary_pos_to_x = 'a(asinh(b/a) - asinh((b-s)/a))';
+    gridded.info.catenary_pos_to_z = 'z0 + (a^2 + (b^2 - s^2))^0.5 - (a^2 + b^2)^0.5';
 end
