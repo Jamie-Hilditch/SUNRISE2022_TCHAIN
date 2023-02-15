@@ -105,28 +105,29 @@ $$ x = (s + s_0)\cos\theta $$
 
 ### Numerical Solution
 
-Given some points, $(s_i, z'_i)$, $ i = 1$ , ..., $ N $ with $N > 2$, on the chain, not including the first pressure sensor, we need to find the values of $k$ and $\theta$ that minimise 
+Given some points, $(s_i, z'_i)$, $i = 1, \dots, N$ with $N > 2$, on the chain, not including the first pressure sensor, we need to find the values of $k$ and $\theta$ that minimise 
 
 $$ r = \frac{1}{N}\sum_{i = 1}^N (z'(s_i) - z'_i)^2 $$
 
 where 
 
-$$ z'(s_i) = \begin{cases} k^{-1}\left(\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2} - \sec\theta\right) & k \neq 0 \\ 
--\sin\theta s & k = 0 \end{cases} $$
+$$z'(s_i) = \begin{cases} k^{-1}\left(\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2} - \sec\theta\right) & k \neq 0 \\
+-\sin\theta s & k = 0 \end{cases}$$
+
 This is a non-linear optimisation which we will solve using the _'trust-region'_ algorithm from the MATLAB optimization toolbox. This requires the gradient and Hessian of $r$. 
 
-$$ \frac{\partial r}{\partial k} = \frac{1}{N}\sum_{i = 1}^N 2(z'(s_i) - z'_i)\left\{k^{-2}\left[\frac{ks_i\tan\theta - \sec^2\theta}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} + \sec\theta\right]\right\} $$
+$$\frac{\partial r}{\partial k} = \frac{1}{N}\sum_{i = 1}^N 2(z'(s_i) - z'_i)\left\lbrace k^{-2}\left[\frac{ks_i\tan\theta - \sec^2\theta}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} + \sec\theta\right]\right\rbrace$$
 
-$$ \frac{\partial r}{\partial \theta} = \frac{1}{N}\sum_{i = 1}^N 2(z'(s_i) - z'_i)\left\{k^{-1}\left[\frac{\sec^2\theta\left(\tan\theta - ks_i\right)}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} - \sec\theta\tan\theta\right]\right\} $$
+$$\frac{\partial r}{\partial \theta} = \frac{1}{N}\sum_{i = 1}^N 2(z'(s_i) - z'_i)\left\lbrace k^{-1}\left[\frac{\sec^2\theta\left(\tan\theta - ks_i\right)}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} - \sec\theta\tan\theta\right]\right\rbrace$$
 
-$$ \frac{\partial^2 r}{\partial k^2} = \frac{1}{N}\sum_{i = 1}^N 2\left\{k^{-2}\left[\frac{ks_i\tan\theta - \sec^2\theta}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} + \sec\theta\right]\right\}^2 + \\
- 2(z'(s_i) - z'_i)\left\{k^{-3}\left[\frac{k^2s_i^2}{\sqrt{k^2s_i^2-2ks_i\tan\theta + \sec^2\theta}^3} - 2\left(\frac{ks_i\tan\theta - \sec^2\theta}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} + \sec\theta\right)\right]\right\} $$
-
-$$ \frac{\partial^2 r}{\partial k\partial \theta} = \frac{1}{N}\sum_{i = 1}^N 2k^{-3}\left[\frac{ks_i\tan\theta - \sec^2\theta}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} + \sec\theta\right]\left[\frac{\sec^2\theta\left(\tan\theta - ks_i\right)}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} - \sec\theta\tan\theta\right] + \\ 
-2(z'(s_i) - z'_i)\left\{k^{-2}\left[\frac{\sec^2\theta\left((ks - \tan\theta)^3 - \tan\theta\right)}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}^3} + \sec\theta\tan\theta\right]\right\} $$
-
-$$ \frac{\partial^2 r}{\partial \theta^2} = \frac{1}{N}\sum_{i = 1}^N 2 \left\{k^{-1}\left[\frac{\sec^2\theta\left(\tan\theta - ks_i\right)}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} - \sec\theta\tan\theta\right]\right\}^2 + \\ 
- 2(z'(s_i) - z'_i)k^{-1}\left\{\frac{-\sec^4\theta(\tan\theta - ks_i)^2}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}^3} + \frac{\sec^2\theta(\sec^2\theta + 2\tan\theta(\tan\theta - ks_i))}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} - \sec\theta\tan^2\theta - \sec^3\theta\right\} $$
+$$\begin{align*}
+\frac{\partial^2 r}{\partial k^2} = & \frac{1}{N}\sum_{i = 1}^N 2\left\lbrace k^{-2}\left[\frac{ks_i\tan\theta - \sec^2\theta}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} + \sec\theta\right]\right\rbrace^2 + \\
+ & 2(z'(s_i) - z'_i)\left\lbrace k^{-3}\left[\frac{k^2s_i^2}{\sqrt{k^2s_i^2-2ks_i\tan\theta + \sec^2\theta}^3} - 2\left(\frac{ks_i\tan\theta - \sec^2\theta}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} + \sec\theta\right)\right]\right\rbrace \\
+\frac{\partial^2 r}{\partial k\partial \theta} = & \frac{1}{N}\sum_{i = 1}^N 2k^{-3}\left[\frac{ks_i\tan\theta - \sec^2\theta}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} + \sec\theta\right]\left[\frac{\sec^2\theta\left(\tan\theta - ks_i\right)}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} - \sec\theta\tan\theta\right] + \\
+& 2(z'(s_i) - z'_i)\left\lbrace k^{-2}\left[\frac{\sec^2\theta\left((ks - \tan\theta)^3 - \tan\theta\right)}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}^3} + \sec\theta\tan\theta\right]\right\rbrace \\
+\frac{\partial^2 r}{\partial \theta^2} = & \frac{1}{N}\sum_{i = 1}^N 2 \left\lbrace k^{-1}\left[\frac{\sec^2\theta\left(\tan\theta - ks_i\right)}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} - \sec\theta\tan\theta\right]\right\rbrace^2 + \\
+& 2(z'(s_i) - z'_i)k^{-1}\left\lbrace \frac{-\sec^4\theta(\tan\theta - ks_i)^2}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}^3} + \frac{\sec^2\theta(\sec^2\theta + 2\tan\theta(\tan\theta - ks_i))}{\sqrt{\sec^2\theta - 2ks_i\tan\theta + k^2s_i^2}} - \sec\theta\tan^2\theta - \sec^3\theta\right\rbrace
+\end{align*}$$
 
 We need to deal with the case $k = 0$. The get the exact gradients by finding the limit as $k \to 0$. Then we find a very good approximation to the Hessian by setting $k$ to be some very small number.
 
