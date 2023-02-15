@@ -4,45 +4,92 @@ function gridded = cm_catenary(gridded,~)
 
     fprintf('Using catenary chain model. This may take a while ...\n')
 
-    % define z' as a function of s,b,c
-    zprime = @(s,b,c) sqrt(s.^2 - 2*b.*s + c.^2) - c;
-
-    % define a function to compute b,c exactly from two points
-    function [ b,c ] = bc_exact(s1,zp1,s2,zp2)
+    % define a function to compute k,th exactly from two points
+    function [ k,th ] = two_point_exact(s1,zp1,s2,zp2)
         A = [s1,zp1;s2,zp2];
+        
+        % singular matrix -> k = 0
+        if rcond(A) < 1e-15 
+            k = 0;
+            th = asin(-s1/zp1);
+            return
+        end
+
         y = [(s1^2 - zp1^2)/2; (s2^2 - zp2^2)/2];
         x = A\y;
-        b = x(1); c = x(2);
-        if b < 0 || c < b
-            b = nan; c= nan;
+        th = asin(x(1)/x(2));
+        k = tan(th)/x(1);
+
+        if ~isreal(th) || ~isreal(k)
+            th = nan;
+            k = nan;
         end
     end
 
     % now define the function to be minimised
-    function [r, grad, Hess] = squared_error(b,c,s,zp)
-        err = zprime(s,b,c)-zp;
-        invsqrt = 1./sqrt(s.^2-2*s.*b + c^2); % common factor
-        r = mean(err.^2);
-        drdb = mean(2*err.*-s.*invsqrt);
-        drdc = mean(2*err.*(c*invsqrt - 1));
-        grad = [drdb, drdc];
-        d2rdb2 = mean(2*s.^2.*invsqrt.^2 + 2*err.*-s.^2.*invsqrt.^3);
-        d2rdbdc = mean(2*-s.*invsqrt.*(c*invsqrt - 1) + 2*err.*s.*c.*invsqrt.^3);
-        d2rdc2 = mean(2*(c*invsqrt - 1).^2 + 2*err.*(s.^2 - 2*s.*b).*invsqrt.^3);
-        Hess = [d2rdb2, d2rdbdc; d2rdbdc, d2rdc2];
+    function [r, grad, Hess] = squared_error(k,th,s,zp) 
+        % All the quantities have removable singularities at k = 0
+        % If k = 0, we compute the limit exactly for the function value and
+        % the derivative then make k nonzero to get a very good approximation 
+        % to the Hessian
+        if k == 0
+            err = -sin(th).*s-zp;
+            r = mean(err.^2);
+            drdk = mean(2*err.*0.5*cos(th)^3.*s.^2);
+            drdth = mean(2*err.*tan(th).*(sin(th) - 1).*s);
+    
+            % make k some tiny nonzero number to compute Hessian
+            k = 10*eps;
+            invsqrt = 1./sqrt(k.^2.*s.^2-2*k.*s.*tan(th) + sec(th).^2); % common factor
+        else
+            err = (sqrt(sec(th).^2 - 2*k.*s.*tan(th) + k.^2.*s.^2) - sec(th))./k - zp;
+            r = mean(err.^2);
+            invsqrt = 1./sqrt(k.^2.*s.^2-2*k.*s.*tan(th) + sec(th).^2); % common factor
+            drdk = mean(2*err.*((k.*s.*tan(th) - sec(th).^2).*invsqrt + sec(th))./k.^2);
+            drdth = mean(2*err.*((sec(th).^2.*(tan(th) - k.*s).*invsqrt - sec(th).*tan(th))./k));
+        end
+    
+        d2rdk2 = mean( ...
+          2*(  ...
+              (((k.*s.*tan(th) - sec(th).^2).*invsqrt + sec(th))./k.^2).^2 + ...
+              err.*( ...
+                     k.^-3.*((s.^2.*k.^2).*invsqrt.^3 - ...
+                     2*((k.*s.*tan(th) - sec(th)^2).*invsqrt + sec(th))) ...
+                   ) ...
+            ) ...
+        );
+        d2rdkdth = mean(...
+            2*k.^-3.*((k.*s.*tan(th) - sec(th).^2).*invsqrt + sec(th)).* ...
+            (sec(th).^2.*(tan(th) - k.*s).*invsqrt - sec(th).*tan(th)) + ...
+            2*err.*( ...
+                    k.^-2.*(sec(th)^2*((k*s - tan(th)).^3 - tan(th)).*invsqrt.^3 + sec(th)*tan(th)) ...
+                    ) ...
+        );
+        d2rdth2 = mean( ...
+            2*k^-2*(sec(th).^2.*(tan(th) - k.*s).*invsqrt - sec(th).*tan(th)).^2 + ...
+            2*err.*k^-1.*( ...
+                         -sec(th)^4*(tan(th) - k.*s).^2.*invsqrt.^3 + ...
+                         sec(th)^2.*(sec(th)^2 + 2*tan(th)*(tan(th) - k.*s)).*invsqrt ...
+                         - sec(th)*tan(th)^2 - sec(th)^3 ...
+                         ) ...
+        );
+                      
+    
+        grad = [drdk; drdth];
+        Hess = [d2rdk2, d2rdkdth; d2rdkdth, d2rdth2];
+           
     end
 
     % need these for parfor loop
-    bc_exact_handle = @bc_exact;
+    two_point_exact_handle = @two_point_exact;
     squared_error_handle = @squared_error;
     
     % define arrays for results
     Ntimes = length(gridded.dn);
     catenary_z0 = nan(1,Ntimes);
     catenary_s0 = nan(1,Ntimes);
-    catenary_a = nan(1,Ntimes);
-    catenary_b = nan(1,Ntimes);
-    catenary_c = nan(1,Ntimes);
+    catenary_k = nan(1,Ntimes);
+    catenary_th = nan(1,Ntimes);
     catenary_rms_error = nan(1,Ntimes);
     
     % exact variables for parfor loop
@@ -62,28 +109,26 @@ function gridded = cm_catenary(gridded,~)
         if z0 > 0; continue;  end % sensor is out of the water
         zp = z(2:end) - z0; % fit to remaining pressure sensors
         ppos = pos(hasp); % position of pressure sensors on chain
-        s = ppos(2:end) - ppos(1); % define s = 0 at first pressure sensor
-        
-        % b - s > 0 on chain
-        bmin = s(end)
+        s0 = ppos(1); % define x = 0 at top of the chain
+        s = ppos(2:end) - s0; % define s = 0 at first pressure sensor
 
-        % compute the exact b and c for every pair of remaining pressure sensors
+        % compute the exact k and th for every pair of remaining pressure sensors
         Npressure = length(zp);
-        b_exact = nan(Npressure*(Npressure-1)/2,1);
-        c_exact = nan(Npressure*(Npressure-1)/2,1);
+        k_exact = nan(Npressure*(Npressure-1)/2,1);
+        th_exact = nan(Npressure*(Npressure-1)/2,1);
         ii = 1;
         for jj = 2:Npressure
             for kk = 1:jj-1
-                [b_exact(ii), c_exact(ii)] = bc_exact_handle(s(jj),zp(jj),s(kk),zp(kk));
+                [k_exact(ii), th_exact(ii)] = two_point_exact_handle(s(jj),zp(jj),s(kk),zp(kk));
                 ii = ii + 1;
             end
         end
 
         % initial condition for the minimisation will be median of exact values
-        b0 = median(b_exact,'omitnan');
-        c0 = median(c_exact,'omitnan');
-        if isnan(b0) || b0 < bmin; b0 = bmin*1.1; end
-        if isnan(c0) || c0 < b0; c0 = b0*1.1; end
+        k0 = median(k_exact,'omitnan');
+        th0 = median(th_exact,'omitnan');
+        if isnan(k0); k0 = 0; end
+        if isnan(th0); th0 = pi/4; end
 
         % function to be minimised
         func = @(x) squared_error_handle(x(1),x(2),s,zp);
@@ -100,7 +145,7 @@ function gridded = cm_catenary(gridded,~)
             
         % solve minimisation problem
         try
-            [x, fval, exitflag, output] = fminunc(func,[b0,c0],options);
+            [x, fval, exitflag, output] = fminunc(func,[k0,th0],options);
         catch ME
             warning(ME.message)
             continue
@@ -112,29 +157,27 @@ function gridded = cm_catenary(gridded,~)
             continue
         end
         
-        % get b,c and rms_error
-        b = x(1);
-        c = x(2);
+        % get k,th and rms_error
+        k = x(1);
+        th = x(2);
         rms_error = sqrt(fval);
 
-        % compute a and s0
-        if b <= bmin; continue; end % b must be larger than the chain
-        if b > c; continue; end % otherwise a is complex
-        a = sqrt(c^2 - b^2);
-        s0 = (b - sqrt(b^2 + 4*z0^2 -8*z0*c))/2;
-
         % save values
-        catenary_a(i) = a;
-        catenary_b(i) = b;
-        catenary_c(i) = c;
+        catenary_k(i) = k;
+        catenary_th(i) = th;
         catenary_rms_error(i) = rms_error;
         catenary_z0(i) = z0;
         catenary_s0(i) = s0;
 
         % compute z and x
-        s = pos - ppos(1); % need all the sensor positions
-        x_grid(:,i) = a*(asinh((b - s0)/a) - asinh((b - s)/a));
-        z_grid(:,i) = sqrt(s.^2 -2*b*s + c^2) - c + z0;
+        s = pos - s0; % need all the sensor positions
+        if k ~= 0
+            x_grid(:,i) = (asinh(tan(th) + k*s0) - asinh(tan(th) - k.*s))/k;
+            z_grid(:,i) = (sqrt(sec(th)^2 - 2*k.*s.*tan(th) + k^2.*s.^2) - sec(th))/k + z0;
+        else
+            x_grid(:,i) = (s + s0).*cos(th);
+            z_grid(:,i) = z0 - sin(th).*s;
+        end
 
         
     end
@@ -147,14 +190,12 @@ function gridded = cm_catenary(gridded,~)
     gridded.z = z_grid;
 
     % save info
-    gridded.info.catenary_a = catenary_a;
-    gridded.info.catenary_b = catenary_b;
-    gridded.info.catenary_c = catenary_c;
+    gridded.info.catenary_k = catenary_k;
+    gridded.info.catenary_th = catenary_th;
     gridded.info.catenary_rms_error = catenary_rms_error;
     gridded.info.catenary_z0 = catenary_z0;
     gridded.info.catenary_s0 = catenary_s0;
-    gridded.info.catenary_s_to_x = 'a(asinh(b-s0/a) - asinh((b-s)/a))';
-    gridded.info.catenary_s_to_z = 'z0 + (a^2 + (b^2 - s^2))^0.5 - (a^2 + b^2)^0.5';
+    gridded.info.catenary_s_to_x = '(asinh(tan(th)+k*s0) - asinh(tan(th)-k*s))/k';
+    gridded.info.catenary_s_to_z = 'z0 + (sec(th)^2 - 2*k*s*tan(th) + k^2*s^2)^0.5 - sec(th))/k';
 
-    fprintf('Done!\n')
 end

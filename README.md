@@ -81,3 +81,11 @@ Metadata is stored as key-value pairs. Time intervals are written as an array of
 | 2022-06-25 |        | These are all pressure sensors. Can compute pressure offset but not time offset. Should we use them for fitting the chain model?                                                                      |
 | 2022-06-28 | 100162 | Data ends slightly before end of the deployment                                       |
 | 2022-07-05 |        | Can't find dunk. Can we improve time offsets?                                         |
+
+### Polly
+| Deployment | Sensor | Issue                                                                                 |
+| :--------: | :----: | :------------------------------------------------------------------------------------ |
+| 2022-06-20 | 101195 | Data is timestamped July 2021                                                         |
+| 2022-06-20 | 100024 | Data is timestamped July 2021                                                         |
+| 2022-06-28 | ?????? | Temperature values are way off (TODO: Find sensor and remove from dataset)                  |
+| 2022-07-02 | 207055 | Data ends before deployment                                                           |

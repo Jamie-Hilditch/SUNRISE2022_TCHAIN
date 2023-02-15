@@ -5,8 +5,8 @@
 % Inputs: none
 % Outputs: config structure
 %
-% Author: Dylan Winters (dylan.winters@oregonstate.edu)
-% Created: 2021-06-20
+% Author: Jamie Hilditch (hilditch@stanford.edu)
+% Created: January 2022
 
 function config = config_SUNRISE2022()
 
@@ -16,7 +16,7 @@ function config = config_SUNRISE2022()
     global_config.freq_base = 2;
     global_config.bin_method = 'none';
     global_config.raw2mat = false; % if true force reparse of data;
-    global_config.display_figures = true;
+    global_config.display_figures = false;
     global_config.force_linear = true; % force use of linear interpolation in time
     
     % Get the tchain data directory
@@ -66,6 +66,19 @@ function config = config_SUNRISE2022()
         vessel = char(vessel_name);
         vessel_directory = fullfile(tchain_dir,vessel);
         deployments = dir(fullfile(vessel_directory,'raw','deploy_*'));
+        
+        % get section times
+        switch vessel
+            case 'Pelican'
+                section_definition = readtable(fullfile(vessel_directory,'raw','PE_section_definition'),NumHeaderLines=0,ReadVariableNames=true,VariableNamingRule="preserve");
+                section_times = section_definition{:,["start_time","end_time"]};
+            case 'PointSur'
+                section_definition = readtable(fullfile(vessel_directory,'raw','PS_section_definition'),NumHeaderLines=0,ReadVariableNames=true,VariableNamingRule="preserve");
+                section_times = section_definition{:,["start_time","end_time"]};
+            otherwise
+                section_times = NaT(0,2);
+        end
+
         for i = 1:length(deployments)
             ndep = ndep + 1;
             config(ndep).name = deployments(i).name;
@@ -74,7 +87,7 @@ function config = config_SUNRISE2022()
             
             % Read the sensors.csv file for instrument deployment positions
             sensors_csv = fullfile(deployments(i).folder,deployments(i).name,'sensors.csv');
-            t = readtable(sensors_csv,NumHeaderLines=0,ReadVariableNames=true,VariableNamingRule="preserve",format='%f%s%f%s%s%u%s');
+            t = readtable(sensors_csv,NumHeaderLines=0,ReadVariableNames=true,VariableNamingRule="preserve",Format='%f%s%f%s%s%u%s');
             config(ndep).sensor_sn = t{:,'serial number'};
             config(ndep).sensor_pos = t{:,'depth [m]'};
             
@@ -133,6 +146,13 @@ function config = config_SUNRISE2022()
             % Set the figures directory
             config(ndep).dir_fig = fullfile(vessel_directory,'processing_figures',deployments(i).name);
             if ~exist(config(ndep).dir_fig,'dir'); mkdir(config(ndep).dir_fig); end
+
+            % Set the sections directory
+            config(ndep).dir_sections = fullfile(vessel_directory,'sections');
+            if ~exist(config(ndep).dir_sections,'dir'); mkdir(config(ndep).dir_sections); end
+
+            % set the section start and end times (Nx2 datetime array)
+            config(ndep).section_times = section_times;
 
             % set the gps files
             gps_files.Aries = 'gps.mat';

@@ -41,17 +41,25 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
     base_t = fillmissing(base_t,'linear');
 
     % subtract off a mean to make correlation cleaner
-    mean_t = mean(base_t);
-    base_t = base_t - mean_t;
+    % mean_t = mean(base_t);
+    % base_t = base_t - mean_t;
+
+    % use median to find a point in the dunk
+    median_t = median(base_t);
+    % compute correlation on differences from the dunk value
+    base_t = abs(base_t - median_t);
 
     for ii = 1:length(offsets)
-        if ii == time_base_index
-            % skip base time
-            continue
-        end
+        % skip base time
+        if ii == time_base_index; continue; end
+        
+        % get sensor temperature difference
+        sensor_t = abs(data{ii}.t - median_t);
+
         fprintf('\tComputing offset for sensor %02d ... ', ii);
         disp_fig = isfield(cfg,'display_figures') && cfg.display_figures;
-        offsets(ii) = compute_dunk_xcorr(data{ii}.dn,data{ii}.t - mean_t,base_dn,base_t,disp_fig);
+        
+        offsets(ii) = compute_dunk_xcorr(data{ii}.dn,sensor_t,base_dn,base_t,disp_fig);
     end 
 
     % close any figures we might have made

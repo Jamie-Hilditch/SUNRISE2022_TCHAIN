@@ -25,13 +25,8 @@ addpath(genpath('Utils'));            % Utility functions
 addpath(genpath(['Cruise_' cruise])); % cruise-specific functions
 
 config = get_config(cruise,varargin{:}); % get processing options
-ndep = length(config);
 
-% preallocate cell array for output variables 
-if nargout >= 1; gridded_output = cell(ndep,1); end
-if nargout >= 2; data_output = cell(ndep,1); end
-
-for i = 1:ndep 
+for i = length(config):-1:1 %backwards
     %% Preprocessing
     cfg = config(i);
     fprintf('Processing deployment: %s\n',cfg.name);
@@ -48,25 +43,20 @@ for i = 1:ndep
    
     % 3) Sample calibrated data onto uniform time base
     [gridded, cfg] = proc_grid_init(data,cfg);
-    gridded = post_grid_hook(gridded,cfg);
-    gridded.info.config = cfg;
-    gridded.info.time_offsets = time_offsets;
-    gridded.info.pressure_offsets = pressure_offsets;
+    gridded(i) = post_grid_hook(gridded(i),cfg);
+    gridded(i).info.config = cfg;
+    gridded(i).info.time_offsets = time_offsets;
+    gridded(i).info.pressure_offsets = pressure_offsets;
 
     % 4) Compute positional offsets using chain shape model
-    gridded = proc_chain_model(gridded,cfg);
-    gridded = post_chain_hook(gridded,cfg);
-    gridded = proc_gps(gridded,cfg);
+    gridded(i) = proc_chain_model(gridded(i),cfg);
+    gridded(i) = post_chain_hook(gridded(i),cfg);
+    gridded(i) = proc_gps(gridded(i),cfg);
     
     % 5) Post-processing
-    gridded = postproc_grid_data(gridded,cfg);
+    output(i) = postproc_grid_data(gridded(i),cfg);
 
     % 6) Save
-    save_deployment(data,gridded,cfg);
-    save_sections(data,gridded,cfg);
-
-    % 7) Output
-    if nargout >= 1; gridded_output{i} = gridded; end
-    if nargout >= 2; data_output{i} = data; end
+    % save_deployment(data,gridded(i),cfg);
+    % save_sections(data,gridded(i),cfg);
 end
-
