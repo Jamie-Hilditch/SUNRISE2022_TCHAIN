@@ -14,7 +14,7 @@ function write_nc(data,gridded,cfg,filename,time_range)
     long_names.p = "Pressure";
     long_names.c = "Conductivity";
     long_names.s = "Salinity";
-    long_names.x = "Horizontal displacement";
+    long_names.x = "Horizontal displacement, positive in direction of ship heading";
     long_names.z = "Vertical displacement";
     long_names.lat = "Latitude";
     long_names.lon = "Longitude";
@@ -22,7 +22,7 @@ function write_nc(data,gridded,cfg,filename,time_range)
     long_names.catenary_th = "Catenary theta, angle down from horizontal at first pressure sensor";
     long_names.catenary_rms_error = "RMS error in z from catenary fit";
     long_names.catenary_z0 = "z coordinate of first pressure sensor";
-    long_names.catenary_s0 = "Catenary arclength from top of chain to first pressure sensor";
+    long_names.catenary_s0 = "Catenary arclength from the top of the chain to the first pressure sensor";
     % units
     units.time = "seconds since 1970-01-01 0:0:0";
     units.dn = "MATLAB datenum";
