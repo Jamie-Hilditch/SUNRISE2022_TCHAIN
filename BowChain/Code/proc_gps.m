@@ -23,27 +23,31 @@ if isfield(cfg,'file_gps')
         gps = renameStructField(gps,'time','dn');
     end
 
+    % convert gps datenum to datetime
+    gps.dt = datetime(dn,'ConvertFrom','datenum');
+
     [~,iu] = unique(gps.dn);
 
     % Interpolate GPS data to sensor time
-    lat = interp1(gps.dn(iu),gps.lat(iu),gridded.dn);
-    lon = interp1(gps.dn(iu),gps.lon(iu),gridded.dn);
+    lat = interp1(gps.dt(iu),gps.lat(iu),gridded.dt);
+    lon = interp1(gps.dt(iu),gps.lon(iu),gridded.dt);
     
     wgs84 = referenceEllipsoid('wgs84','m');
     if isfield(gps,'heading')
         hi = cosd(gps.heading) + 1i*sind(gps.heading);
-        h = mod(180/pi*angle(interp1(gps.dn(iu),hi(iu),gridded.dn)),360);
+        h = mod(180/pi*angle(interp1(gps.dt(iu),hi(iu),gridded.dt)),360);
     else
         % compute velocity to get heading
         
-        lt0 = nanmean(lat);
-        ln0 = nanmean(lon);
+        lt0 = mean(lat,'omitnan');
+        ln0 = mean(lon,'omitnan');
         lt2y = distance('rh',lt0-0.5,ln0,lt0+0.5,ln0,wgs84); % meters N/S per deg N
         ln2x = distance('rh',lt0,ln0-0.5,lt0,ln0+0.5,wgs84); % meters E/W per deg W at lat lt0
         y  =  lt2y * (lat-lt0) ; % meters N/S
         x  =  ln2x * (lon-ln0) ; % meters E/W
-        vx = gradient(x,gridded.dn);
-        vy = gradient(y,gridded.dn);
+        dt = (gridded.dt - gridded.dt(1))/seconds(1); % seconds from start
+        vx = gradient(x,dt);
+        vy = gradient(y,dt);
         h = mod(90 - 180/pi*atan2(vy,vx),360);
     end
 

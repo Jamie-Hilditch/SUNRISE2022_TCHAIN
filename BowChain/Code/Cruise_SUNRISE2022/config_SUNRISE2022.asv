@@ -12,14 +12,13 @@ function config = config_SUNRISE2022()
 
     %% Set some global configurations
     global_config = DeploymentConfiguration();
-    global_config.cruise = 'SUNRISE2022';
-    global_config.chain_model = 'cm_catenary'; %'cm_straight';
+    global_config.chain_model = 'cm_straight'; %'cm_straight';
     global_config.freq_base = 2;
     global_config.bin_method = 'none';
     global_config.raw2mat = false; % if true force reparse of data;
-    global_config.display_figures = false;
+    global_config.display_figures = true;
     global_config.force_linear = true; % force use of linear interpolation in time
-    global_config.save_output = true;
+    global_config.save_output = false;
     
     % Get the tchain data directorys
     % Use an environment variable rather than user_directories.m
@@ -60,17 +59,14 @@ function config = config_SUNRISE2022()
     %         └── processed_nc
     %         └── sections
     %         └── processing_figures
-   
-    vessel_names = {'Aries', 'Pelican', 'PointSur', 'Polly'};
-
-    nvessels = length(vessel_names);
-    configs = cell(length(vessel_names),1);
+    
+    vessel_names = ["Aries", "Pelican", "PointSur", "Polly"];
   
-    for vi = 1:nvessels
-        vessel = vessel_names{vi};
+    ndep = 0;
+    for vessel_name = vessel_names
+        vessel = char(vessel_name);
         vessel_directory = fullfile(tchain_dir,vessel);
         deployments = dir(fullfile(vessel_directory,'raw','deploy_*'));
-        ndep = length(deployments);
         
         % get section times
         switch vessel
@@ -85,36 +81,37 @@ function config = config_SUNRISE2022()
             otherwise
                 section_times = NaT(0,2);
         end
-        
-        vessel_config = repmat(global_config,ndep,1);
-        for i = 1:ndep
-            vessel_config(i).name = deployments(i).name;
-            vessel_config(i).vessel = vessel;
+
+        for i = 1:length(deployments)
+            ndep = ndep + 1;
+            config
+            config(ndep).name = deployments(i).name;
+            config(ndep).vessel = vessel;
             
             
             % Read the sensors.csv file for instrument deployment positions
             sensors_csv = fullfile(deployments(i).folder,deployments(i).name,'sensors.csv');
             t = readtable(sensors_csv,NumHeaderLines=0,ReadVariableNames=true,VariableNamingRule="preserve",Format='%f%s%f%s%s%u%s');
-            vessel_config(i).sensor_sn = t{:,'serial number'};
-            vessel_config(i).sensor_pos = t{:,'depth [m]'};
+            config(ndep).sensor_sn = t{:,'serial number'};
+            config(ndep).sensor_pos = t{:,'depth [m]'};
             
             % Read in the metadata
             metadata_file = fullfile(deployments(i).folder,deployments(i).name,'metadata.json');
             fid = fopen(metadata_file,'r','n','UTF-8'); 
-            char_metadata = fread(fid,[1,inf],'char=>char');
+            char_metadata = fread(fid,inf,'char'); 
             fclose(fid);
             metadata = jsondecode(char_metadata);
 
             % deployment duration
             if isfield(metadata,'deployment_duration')
-                vessel_config(i).deployment_duration = datetime(metadata.deployment_duration);
+                config(ndep).deployment_duration = datetime(metadata.deployment_duration);
             end
 
             % zero_pressure_interval
             if isfield(metadata,'zero_pressure_interval')
                 zero_pressure_interval = datetime(metadata.zero_pressure_interval);
                 if ~any(isnat(zero_pressure_interval))
-                    vessel_config(i).zero_pressure_interval = zero_pressure_interval;
+                    config(ndep).zero_pressure_interval = zero_pressure_interval;
                 end
             end
 
@@ -122,33 +119,33 @@ function config = config_SUNRISE2022()
             if isfield(metadata,'dunk_interval') && isfield(metadata,'time_base_sensor_sn')
                 dunk_interval = datetime(metadata.dunk_interval);
                 if ~any(isnat(dunk_interval))
-                    vessel_config(i).time_offset_method = 'dunk_correlation';
-                    vessel_config(i).dunk_interval = dunk_interval;
-                    vessel_config(i).time_base_sensor_sn = metadata.time_base_sensor_sn;
+                    config(ndep).time_offset_method = 'dunk_correlation';
+                    config(ndep).dunk_interval = dunk_interval;
+                    config(ndep).time_base_sensor_sn = metadata.time_base_sensor_sn;
                 end
             end
     
             % Set raw_rsk data directory
-            vessel_config(i).dir_raw = fullfile(deployments(i).folder,deployments(i).name,'raw_rsk');
+            config(ndep).dir_raw = fullfile(deployments(i).folder,deployments(i).name,'raw_rsk');
     
             % Set raw_mat data directory
-            vessel_config(i).dir_proc = fullfile(deployments(i).folder,deployments(i).name,'raw_mat');
-            if ~exist(vessel_config(i).dir_proc,'dir'); mkdir(vessel_config(i).dir_proc); end
+            config(ndep).dir_proc = fullfile(deployments(i).folder,deployments(i).name,'raw_mat');
+            if ~exist(config(ndep).dir_proc,'dir'); mkdir(config(ndep).dir_proc); end
 
             % Set the processed_nc file
-            vessel_config(i).nc_file = fullfile(vessel_directory,'processed_nc',[deployments(i).name '.nc']);
+            config(ndep).nc_file = fullfile(vessel_directory,'processed_nc',[deployments(i).name '.nc']);
             if ~exist(fullfile(vessel_directory,'processed_nc'),'dir'); mkdir(fullfile(vessel_directory,'processed_nc')); end
 
             % Set the figures directory
-            vessel_config(i).dir_fig = fullfile(vessel_directory,'processing_figures',deployments(i).name);
-            if ~exist(vessel_config(i).dir_fig,'dir'); mkdir(vessel_config(i).dir_fig); end
+            config(ndep).dir_fig = fullfile(vessel_directory,'processing_figures',deployments(i).name);
+            if ~exist(config(ndep).dir_fig,'dir'); mkdir(config(ndep).dir_fig); end
 
             % Set the sections directory
-            vessel_config(i).dir_sections = fullfile(vessel_directory,'sections');
-            if ~exist(vessel_config(i).dir_sections,'dir'); mkdir(vessel_config(i).dir_sections); end
+            config(ndep).dir_sections = fullfile(vessel_directory,'sections');
+            if ~exist(config(ndep).dir_sections,'dir'); mkdir(config(ndep).dir_sections); end
 
             % set the section start and end times (Nx2 datetime array)
-            vessel_config(i).section_times = section_times;
+            config(ndep).section_times = section_times;
 
             % set the gps files
             gps_files.Aries = 'gps.mat';
@@ -157,14 +154,11 @@ function config = config_SUNRISE2022()
             gps_files.Polly = 'gps.mat';
             
             if isfield(gps_files,vessel)
-                vessel_config(i).file_gps = fullfile(vessel_directory,'raw',gps_files.(vessel));
+                config(ndep).file_gps = fullfile(vessel_directory,'raw',gps_files.(vessel));
             end
 
-            
         end
-        configs{vi} = vessel_config;
     end
-
-    % concatenate configs
-    config = vertcat(configs{:});
+    config = fill_defaults(config,global_config);
+    
     %% End of config_SUNRISE2022

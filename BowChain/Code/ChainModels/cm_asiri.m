@@ -11,7 +11,7 @@ nprog = 50;
 disp(repmat('.',1,nprog))
 NS = size(gridded.p,1);
 L = cfg.sensor_pos;
-for i = 1:length(gridded.dn)
+for i = 1:length(gridded.dt)
     if mod(i,floor(length(gridded.dn)/nprog))==0
         fprintf('.')
     end

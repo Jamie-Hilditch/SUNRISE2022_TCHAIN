@@ -1,6 +1,6 @@
-function [data, cfg] = post_load_hook(data, cfg)
+function [data, sensors] = post_load_hook(data, cfg, sensors)
 
 func = [cfg.cruise '_post_load_hook'];
-if exist(func) == 2
-    [data, cfg] = feval(func,data,cfg);
+if exist(func,'file')
+    [data, sensors] = feval(func,data,cfg,sensors);
 end

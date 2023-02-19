@@ -1,4 +1,4 @@
-function [data, cfg] = SUNRISE2022_post_grid_hook(data,cfg)
+function [data, sensors] = SUNRISE2022_post_grid_hook(data,cfg,sensors)
     % gridded preprocessing code - executed after data has been gridded in time
     % but before depths are calculated
     % to keep this function organised save your code as a script or 

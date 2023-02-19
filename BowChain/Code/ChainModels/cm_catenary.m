@@ -85,7 +85,7 @@ function gridded = cm_catenary(gridded,~)
     squared_error_handle = @squared_error;
     
     % define arrays for results
-    Ntimes = length(gridded.dn);
+    Ntimes = length(gridded.dt);
     catenary_z0 = nan(1,Ntimes);
     catenary_s0 = nan(1,Ntimes);
     catenary_k = nan(1,Ntimes);

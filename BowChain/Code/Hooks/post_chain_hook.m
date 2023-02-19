@@ -1,6 +1,6 @@
-function gridded = post_chain_hook(gridded, cfg)
+function [gridded, sensors] = post_chain_hook(gridded,cfg,sensors)
 
 func = [cfg.cruise '_post_chain_hook'];
-if exist(func) == 2
-    gridded = feval(func,gridded,cfg);
+if exist(func,'file')
+    [gridded, sensors] = feval(func,gridded,cfg,sensors);
 end

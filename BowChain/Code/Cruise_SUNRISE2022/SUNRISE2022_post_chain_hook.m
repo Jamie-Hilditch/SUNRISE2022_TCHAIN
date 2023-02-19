@@ -1,4 +1,4 @@
-function [data, cfg] = SUNRISE2022_post_chain_hook(data,cfg)
+function [data, sensors] = SUNRISE2022_post_chain_hook(data,cfg,sensors)
     % 2D preprocessing code - executed after data has been gridded in time 
     % and depths calculated
     % to keep this function organised save your code as a script or 

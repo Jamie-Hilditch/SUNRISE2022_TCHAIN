@@ -1,31 +1,40 @@
-function [gridded ,config] = proc_grid_init(data,config,varargin)
+function [gridded ,sensors] = proc_grid_init(data,config,sensors,varargin)
 
-N = length(config.sensors);
-perd_base =1/(config.freq_base*86400);
+N = length(sensors);
+perd_base = seconds(1/config.freq_base);
 % Use a custom datenum range if specified
-if nargin > 2
-    dn_range = varargin{1};
+if nargin > 3
+    interval = varargin{1};
 else
-    dn_range = config.dn_range;
+    interval = config.deployment_duration;
+end
+
+% get start and end times
+start_dt = compute_best_start_time(interval(1),perd_base,data);
+if isnat(interval(2))
+    data_end_times = cellfun(@(S) S.dt(1),data);
+    end_dt = min(data_end_times);
+else
+    end_dt = interval(2);
 end
 
 %% Initialize gridded variables
 gridded = struct();
-start_dn = compute_best_start_time(dn_range(1),perd_base,data);
-gridded.dn = start_dn:perd_base:(dn_range(2));
+gridded.dt = start_dt:perd_base:end_dt;
+
 flds = {'t','p','s','x','z'};
 for f = 1:length(flds)
-    gridded.(flds{f}) = nan(N,length(gridded.dn));
+    gridded.(flds{f}) = nan(N,length(gridded.dt));
 end
 
 % Subsample/interpolate all data onto intermediate time base
 for i = 1:length(data)
     % set method of interpolation   
-    if isfield(config,'force_linear') && config.force_linear
+    if config.force_linear
         interp_method = 'linear';
     else
         % Determine interpolation method based on sampling period
-        perd_sens = mean(diff(data{i}.dn),'omitnan');
+        perd_sens = mean(diff(data{i}.dt),'omitnan');
         if perd_sens <= perd_base
             interp_method = 'nearest';
         else
@@ -34,10 +43,10 @@ for i = 1:length(data)
     end
     
     % add the interpolation method to config
-    config.sensors(i).interp_method = interp_method;
+    sensors(i).interp_method = interp_method;
 
     % Interpolate data onto base_time
-    [~,idx] = unique(data{i}.dn);
+    [~,idx] = unique(data{i}.dt);
     t_idx = false(N,1);
     t_idx(idx) = true;
     for f = 1:length(flds)
@@ -45,11 +54,11 @@ for i = 1:length(data)
             d_idx = isfinite(data{i}.(flds{f}));
             idx = (t_idx & d_idx);
             gridded.(flds{f})(i,:) = ...
-                interp1(data{i}.dn(idx),data{i}.(flds{f})(idx),gridded.dn,...
+                interp1(data{i}.dt(idx),data{i}.(flds{f})(idx),gridded.dt,...
                         interp_method);
         end
     end
-    gridded.pos(i,:) = config.sensors(i).pos;
+    gridded.pos(i,:) = sensors(i).pos;
 end
 
 % Add lat and lon fields if GPS file is specifeid

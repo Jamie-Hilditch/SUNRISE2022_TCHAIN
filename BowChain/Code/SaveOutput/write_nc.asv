@@ -1,4 +1,4 @@
-function write_nc(data,gridded,cfg,sensors,filename,time_range)
+function write_nc(data,gridded,cfg,filename,time_range)
     % write gridded and ungridded data in a timerange to netcdf
 
     % possible variables with sensor and time dimensions
@@ -133,7 +133,7 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
         end
     end
     function putAttDuration(name)
-        if ~any(isnan(cfg.(name)))
+        if ~any(isnan(config.(name)))
             netcdf.putAtt(grid_id,global_id,name,cfg.(name)/seconds(1),'NC_DOUBLE');
             netcdf.putAtt(ungd_id,global_id,name,cfg.(name)/seconds(1),'NC_DOUBLE');
         end
@@ -142,7 +142,7 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
     putAtt('name','NC_STRING');
     putAtt('cruise','NC_STRING');
     putAtt('vessel','NC_STRING');
-    putAttDatetime('deployment_duration');
+    putAttDatetime('deployment_duration','NC_DOUBLE');
     putAttDatetime('zero_pressure_interval');
     putAtt('dir_raw','NC_STRING');
     putAtt('dir_proc','NC_STRING');
@@ -167,7 +167,7 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
 
     % optional attributes
     function putAttInfo(name,dtype)
-        if isfield(gridded.info, name) && ~isempty(gridded.info.(name))
+        if ~isempty(gridded.info.(name))
             netcdf.putAtt(grid_id,global_id,name,gridded.info.(name),dtype);
             netcdf.putAtt(ungd_id,global_id,name,gridded.info.(name),dtype);
         end
@@ -189,9 +189,9 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
         netcdf.putVar(grid_id,time_offsets_id,gridded.info.time_offsets(:,time_idx));
     end
     netcdf.putVar(grid_id,pressure_offsets_id,gridded.info.pressure_offsets);
-    netcdf.putVar(grid_id,sensor_sn_id,string({sensors(:).sn}));
-    netcdf.putVar(grid_id,sensor_type_id,string({sensors(:).sensor_type}));
-    netcdf.putVar(grid_id,sensor_interp_id,string({sensors(:).interp_method}));
+    netcdf.putVar(grid_id,sensor_sn_id,string({cfg.sensors(:).sn}));
+    netcdf.putVar(grid_id,sensor_type_id,string({cfg.sensors(:).sensor_type}));
+    netcdf.putVar(grid_id,sensor_interp_id,string({cfg.sensors(:).interp_method}));
     cellfun(@(varid,name) netcdf.putVar(grid_id,varid,gridded.(name)(:,time_idx)),var_ids,vars);
 
     % optional variables
@@ -218,10 +218,11 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
         grp_id = netcdf.defGrp(ungd_id,sprintf('sensor_%02d',ii));
 
         % get time index
-        time_idx = (data{ii}.dt >= time_range(1)) & (data{ii}.dt <= time_range(2));
+        sensor_time = datetime(data{ii}.dn,'ConvertFrom','datenum');
+        time_idx = (sensor_time >= time_range(1)) & (sensor_time <= time_range(2));
         
         % total number of datapoints
-        ndata = length(data{ii}.dt);
+        ndata = length(data{ii}.dn);
         nidx = nnz(time_idx);
 
         % define the time dimension
@@ -233,7 +234,7 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
         % get the variable names
         fields = fieldnames(data{ii});
         
-        idx = cellfun(@(fieldname) length(data{ii}.(fieldname))==ndata && ~strcmp(fieldname,'dt'),fields);
+        idx = cellfun(@(fieldname) length(data{ii}.(fieldname))==ndata,fields);
         vars = fields(idx);
 
         % define the variables
@@ -252,9 +253,9 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
         cellfun(@(varid,name) netcdf.putAtt(grp_id,varid,'units',units.(name),'NC_STRING'),var_ids,vars);
 
         % set global attributes on the group
-        netcdf.putAtt(grp_id,global_id,'sensor_sn',sensors(ii).sn,'NC_STRING');
-        netcdf.putAtt(grp_id,global_id,'sensor_type',sensors(ii).sensor_type,'NC_STRING');
-        netcdf.putAtt(grp_id,global_id,'position_on_chain',sensors(ii).pos,'NC_DOUBLE');
+        netcdf.putAtt(grp_id,global_id,'sensor_sn',cfg.sensors(ii).sn,'NC_STRING');
+        netcdf.putAtt(grp_id,global_id,'sensor_type',cfg.sensors(ii).sensor_type,'NC_STRING');
+        netcdf.putAtt(grp_id,global_id,'position_on_chain',cfg.sensors(ii).pos,'NC_DOUBLE');
         netcdf.putAtt(grp_id,global_id,'position_units',units.pos,'NC_STRING');
         netcdf.putAtt(grp_id,global_id,'time_offset_applied',gridded.info.time_offsets(ii),'NC_DOUBLE');
         netcdf.putAtt(grp_id,global_id,'time_offset_units',units.time_offsets,'NC_STRING');
@@ -262,15 +263,15 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
             netcdf.putAtt(grp_id,global_id,'pressure_offset_applied',gridded.info.pressure_offsets(ii),'NC_DOUBLE');
             netcdf.putAtt(grp_id,global_id,'pressure_offset_units',units.pressure_offsets,'NC_STRING');
         end
-        netcdf.putAtt(grp_id,global_id,'raw_rsk_file',sensors(ii).file_raw,'NC_STRING');
-        netcdf.putAtt(grp_id,global_id,'raw_mat_file',sensors(ii).file_mat,'NC_STRING');
+        netcdf.putAtt(grp_id,global_id,'raw_rsk_file',cfg.sensors(ii).file_raw,'NC_STRING');
+        netcdf.putAtt(grp_id,global_id,'raw_mat_file',cfg.sensors(ii).file_mat,'NC_STRING');
 
         % end define mode
         netcdf.endDef(ncid);
         
 
         % write data into variables
-        netcdf.putVar(grp_id,time_id,posixtime(data{ii}.dt(time_idx)));
+        netcdf.putVar(grp_id,time_id,posixtime(sensor_time(time_idx)));
         cellfun(@(varid,name) netcdf.putVar(grp_id,varid,data{ii}.(name)(time_idx)),var_ids,vars);
 
     end

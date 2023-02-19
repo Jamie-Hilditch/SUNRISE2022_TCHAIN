@@ -1,25 +1,24 @@
-function config = preproc_raw2mat(config)
+function preproc_raw2mat(config, sensors)
 % Convert raw sensor data to .mat format
 
-disp('Converting raw data to .mat files...')
+fprintf('Converting raw data to .mat files ...\n')
 
-for i = 1:length(config.sensors)
+for i = 1:length(sensors)
     
     % Check if .mat files already exist
-    [~,fname,fext] = fileparts(config.sensors(i).file_raw);
-    force_reparse = isfield(config,'raw2mat') && config.raw2mat;
-    if exist(config.sensors(i).file_mat,'file') && ~force_reparse
+    [~,fname,fext] = fileparts(sensors(i).file_raw);
+    if exist(sensors(i).file_mat,'file') && ~config.raw2mat
         % Skip
         fprintf('\t%s.mat already exists\n',fname)
     else
         fprintf('\t%s%s --> %s.mat\n',fname,fext,fname)
 
         % Parse raw sensor data
-        data = feval(config.sensors(i).parse_func,...
-                     config.sensors(i).file_raw);
-
+        data = feval(sensors(i).parse_func,...
+                     sensors(i).file_raw);
+        data.dt = datetime(data.dn,'ConvertFrom','datenum');
         % Save .mat file
-        data.sn = config.sensors(i).sn;
-        save(config.sensors(i).file_mat,'-struct','data');
+        data.sn = sensors(i).sn;
+        save(sensors(i).file_mat,'-struct','data');
     end
 end

@@ -1,30 +1,29 @@
-function config = preproc_setup(config);
+function sensors = preproc_setup(config)
 
-disp('Identifying sensors and finding data...')
-conig.sensors = struct();
+fprintf('Identifying sensors and finding data ...\n')
 
-setup_override_fname = ['setup_override_' config.cruise];
-if exist(setup_override_fname) == 2
+setup_override_fname = ['setup_override_' config.cruise '.m'];
+if isfile(setup_override_fname)
     fprintf('\tOverriding default setup with %s.\n',setup_override_fname)
-    config = feval(setup_override_fname,config);
+    sensors = feval(setup_override_fname,config);
     return
 end
 
 pos_ind = 0; % position index
 
-sensor_dir_func = ['sensor_dirs_' config.cruise];
+sensor_dir_func = ['sensor_dirs_' config.cruise '.m'];
 
 for i = 1:length(config.sensor_sn)
     % Associate a parsing function and file extension with a serialnum
     [sensor_type, parse_func, ext, sn, status] = get_sensor_info(config.sensor_sn{i});
     if status==0 % found parsing func and file ext for serial
-        if exist(sensor_dir_func,'file')
+        if isfile(sensor_dir_func)
             [fpath_raw, fpath_proc] = feval(sensor_dir_func,config,sn);
         else
             fpath_raw = config.dir_raw;
             fpath_proc = config.dir_proc;
         end
-        if ~exist(config.dir_proc,'dir')
+        if ~isfolder(config.dir_proc)
             mkdir(config.dir_proc);
         end
 
@@ -32,9 +31,9 @@ for i = 1:length(config.sensor_sn)
         if length(file_raw) == 1
             pos_ind = pos_ind + 1;
             fn_raw = file_raw.name;
-            [~,fname,fext] = fileparts(fn_raw);
+            [~,fname,~] = fileparts(fn_raw);
             fn_mat = [fname, '.mat'];
-            config.sensors(pos_ind) = struct(...
+            sensors(pos_ind) = struct(...
                 'sn'          , sn                          ,...
                 'file_raw'    , fullfile(fpath_raw,fn_raw)  ,...
                 'file_mat'    , fullfile(fpath_proc,fn_mat) ,...

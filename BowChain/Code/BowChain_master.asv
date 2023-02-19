@@ -63,14 +63,14 @@ for i = 1:ndep
     gridded = proc_gps(gridded,cfg);
 
     % 5) Add info
-    gridded.info.config = cfg;
+    gridded.info.config = struct(cfg);
     gridded.info.sensors = sensors;
     gridded.info.time_offsets = time_offsets;
     gridded.info.pressure_offsets = pressure_offsets;
 
     % 6) Save processed data
-    save_deployment(data,gridded,cfg,sensors);
-    save_sections(data,gridded,cfg,sensors);
+    save_deployment(data,gridded,cfg);
+    save_sections(data,gridded,binned,cfg);
     
     % 7) Post Processing
     binned = postproc_bin_data(gridded,cfg);

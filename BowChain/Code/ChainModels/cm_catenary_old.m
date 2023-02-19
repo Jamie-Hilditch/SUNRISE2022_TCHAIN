@@ -16,12 +16,12 @@ l2z = @(l,a) a.*(1 - sqrt(1 + (l./a).^2)); % rewrite using hyp-trig identities
 lz2a = @(l,z) (z.^2 - l.^2)./z/2; % get a from z and l
 
 % Want to minimize the difference between l2z(l) and z
-a = nan(size(gridded.dn));
-a_exacts = cell(size(gridded.dn));
+a = nan(size(gridded.dt));
+a_exacts = cell(size(gridded.dt));
 %hasp = find(~all(isnan(gridded.p),2));
 %amax = 1e3;  % almost flat
 %amin = 1e-5; % almost vertical
-Ndatapoints = length(gridded.dn);
+Ndatapoints = length(gridded.dt);
 for i = 1:Ndatapoints
     hasp = find(~isnan(gridded.p(:,i)));
     z = -gridded.p(hasp,i);
