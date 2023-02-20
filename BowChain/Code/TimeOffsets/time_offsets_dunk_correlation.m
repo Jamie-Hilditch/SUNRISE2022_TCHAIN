@@ -1,19 +1,10 @@
 function offsets = time_offsets_dunk_correlation(data,cfg)
 
     % initialise the offsets
-    offsets = zeros(length(data),1);
+    offsets = seconds(zeros(length(data),1));
 
     % get the serial number of the sensor we're using as our time base
-    if isfield(cfg,'time_base_sensor_sn')
-        sensor_sn = cfg.time_base_sensor_sn;
-    else
-        warning('No sensor specified as the time base for computing offsets. Using sensor 1.')
-        sensor_sn = cfg.sensor_sn{1};
-    end
-    % serial numbers should be a char array
-    if isnumeric(sensor_sn)
-        sensor_sn = num2str(sensor_sn);
-    end
+    sensor_sn = cfg.time_base_sensor_sn;
 
     % get the position of the sensor we're using as our time base
     time_base_index = find(strcmp(cfg.sensor_sn,sensor_sn));
@@ -24,17 +15,16 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
     time_base_index = time_base_index(1);
 
     % get the dunk_interval
-    if isfield(cfg,'dunk_interval')
-        dunk_interval = cfg.dunk_interval;
-    else 
-        warning('No dunk interval specified. No time offsets calculated.')
-        return 
+    dunk_interval = cfg.dunk_interval;
+    if any(isnat(dunk_interval))
+        warning('dunk_interval contains NaTs. No time offsets calculated.')
+        return
     end
 
     % get the time and temperature for our base 
-    base_idx = (data{time_base_index}.dn >= datenum(dunk_interval(1))) & ...
-            (data{time_base_index}.dn <= datenum(dunk_interval(2)));
-    base_dn = data{time_base_index}.dn(base_idx);
+    base_idx = (data{time_base_index}.dt >= dunk_interval(1)) & ...
+            (data{time_base_index}.dt <= dunk_interval(2));
+    base_dt = data{time_base_index}.dt(base_idx);
     base_t = data{time_base_index}.t(base_idx);
 
     % fill in any nans in base_t
@@ -59,7 +49,7 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
         fprintf('\tComputing offset for sensor %02d ... ', ii);
         disp_fig = isfield(cfg,'display_figures') && cfg.display_figures;
         
-        offsets(ii) = compute_dunk_xcorr(data{ii}.dn,sensor_t,base_dn,base_t,disp_fig);
+        offsets(ii) = compute_dunk_xcorr(data{ii}.dt,sensor_t,base_dt,base_t,disp_fig);
     end 
 
     % close any figures we might have made
@@ -79,10 +69,10 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
             lw = 0.5;
             c = 'k';
         end
-        idx = (data{ii}.dn >= datenum(dunk_interval(1))) & ...
-            (data{ii}.dn <= datenum(dunk_interval(2)));
-        h1 = plot(ax1,datetime(data{ii}.dn(idx),'ConvertFrom','datenum'),data{ii}.t(idx),color=c,linewidth=lw);
-        h2 = plot(ax2,datetime(data{ii}.dn(idx)+offsets(ii),'ConvertFrom','datenum'),data{ii}.t(idx),color=c,linewidth=lw);
+        idx = (data{ii}.dt >= dunk_interval(1)) & ...
+            (data{ii}.dt <= dunk_interval(2));
+        h1 = plot(ax1,data{ii}.dt(idx),data{ii}.t(idx),color=c,linewidth=lw);
+        h2 = plot(ax2,data{ii}.dt(idx)+offsets(ii),data{ii}.t(idx),color=c,linewidth=lw);
         if ii == time_base_index
             top1 = h1;
             top2 = h2;
@@ -99,11 +89,11 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
     title(ax2,'With offsets')
     sgtitle('Dunk Interval')
     % save figure
-    if isfield(cfg,'dir_fig') && ~isempty(cfg.dir_fig)
+    if ~isempty(cfg.dir_fig)
         print(fig,fullfile(cfg.dir_fig,'time_offsets.png'),'-dpng','-r600')
     end
     % display figure until closed
-    if isfield(cfg,'display_figures') && cfg.display_figures
+    if cfg.display_figures
         uiwait(fig)
     end
 end

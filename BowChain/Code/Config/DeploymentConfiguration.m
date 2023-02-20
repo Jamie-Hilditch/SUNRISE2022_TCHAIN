@@ -21,7 +21,7 @@ classdef DeploymentConfiguration
         dir_raw (1,:) char 
         dir_sections (1,:) char
         display_figures (1,1) logical = true
-        drift (1,1) duration = seconds(nan)
+        drift (:,1) duration
         dunk_interval (1,2) datetime = NaT(1,2)
         file_gps (1,:) char
         force_linear (1,1) logical = false % force use of linear interpolation
@@ -89,7 +89,7 @@ classdef DeploymentConfiguration
                 case 'none'
                     return
                 case 'known_drift'
-                    if isnan(obj.drift) || isnat(obj.time_synched) || isnat(obj.time_drift_measured)
+                    if isempty(obj.drift) || isnat(obj.time_synched) || isnat(obj.time_drift_measured)
                         error(['drift, time_synched, and time_drift_measured' ... '
                             'configuration properties must be set to use known drift method'])
                     end

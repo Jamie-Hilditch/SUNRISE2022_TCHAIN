@@ -7,4 +7,4 @@ for i = 2:length(offsets)
   offsets(i) = determine_t_offset(datenum(gridded.dt)',gridded.t(i-1,:)',...
                                   datenum(gridded.dn)',gridded.t(i,:)',datenum(cfg.cohere_interval));
 end
-offsets = cumsum(offsets);
+offsets = days(cumsum(offsets));

@@ -7,6 +7,8 @@
 % Outputs: gridded - gridded dataset (cell array). 
 % 
 % Author: Dylan Winters (dylan.winters@oregonstate.edu)
+%
+% Updated February 2023 - Jamie Hilditch (hilditch:stanford.edu)
 
 function [ binned_output, gridded_output, data_output ] = BowChain_master(cruise,vessels,deployments)
 
@@ -23,6 +25,7 @@ addpath(genpath('Config'));           % functions for creating and checking conf
 addpath(genpath('Gridding'));         % Functions to create time grid
 addpath(genpath('Hooks'));            % Hook functions
 addpath(genpath('ParseFunctions'));   % instrument parsing functions
+addpath(genpath('PreProcessing'));
 addpath(genpath('SaveOutput'));       % Write output to file
 addpath(genpath('Sensors'));          % Get sensor info
 addpath(genpath('TimeOffsets'));      % Sensor clock offset computation methods
@@ -49,6 +52,7 @@ for i = 1:ndep
     %% Main processing
     % 1) Any user-defined preprocessing
     data = post_load_hook(data,cfg,sensors);
+
     % 2) Compute and apply time/pressure offsets to raw data
     [data, time_offsets] = proc_time_offsets(data,cfg);
     [data, pressure_offsets] = proc_pressure_cal(data,cfg);

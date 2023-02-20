@@ -41,6 +41,7 @@ function dt_start = compute_best_start_time(target,perd_base,data)
     % choose the start time that minimises the total difference
     [~,idx] = min(time_differences);
     dt_start = potential_start_times(idx);
+    dt_start.Format = 'yyyy-MM-dd HH:mm:ss.SSS';
 
     fprintf('Using start time %s\n',dt_start);
 end

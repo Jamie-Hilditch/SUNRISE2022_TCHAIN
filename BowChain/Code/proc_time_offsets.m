@@ -1,5 +1,15 @@
 function [data, offsets] = proc_time_offsets(data,cfg)
 
+arguments (Input)
+    data cell
+    cfg (1,1) DeploymentConfiguration
+end
+
+arguments (Output)
+    data cell
+    offsets (:,1) duration
+end
+
 % Compute offsets
 apply_offsets = true;
 switch cfg.time_offset_method
@@ -20,7 +30,7 @@ switch cfg.time_offset_method
     offsets = time_offsets_dunk_correlation(data,cfg);
   otherwise
     fprintf('No time offsets applied\n')
-    offsets = zeros(length(data),1);
+    offsets = seconds(zeros(length(data),1));
     apply_offsets = false;
 end
 
@@ -28,9 +38,9 @@ end
 if apply_offsets
     fprintf('Applying time offsets\n')
     for i = 1:length(data)
-        data{i}.dn = data{i}.dn + offsets(i);
-        data{i}.dt = data{i}.dt + days(offsets(i));
+        data{i}.dn = data{i}.dn + offsets(i)/days(1);
+        data{i}.dt = data{i}.dt + offsets(i);
         fprintf('\tRemoved %.2fs time offset from %s\n',...
-                     offsets(i)*86400,data{i}.sn)
+                     offsets(i)/seconds(1),data{i}.sn)
     end
 end

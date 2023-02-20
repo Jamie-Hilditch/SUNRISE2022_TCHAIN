@@ -53,6 +53,10 @@ for i = 1:length(data)
         if isfield(data{i},flds{f})
             d_idx = isfinite(data{i}.(flds{f}));
             idx = (t_idx & d_idx);
+            if ~any(idx)
+                warning('No finite data for field %s from sensor %s',flds{f},sensors(i).sn)
+                continue
+            end
             gridded.(flds{f})(i,:) = ...
                 interp1(data{i}.dt(idx),data{i}.(flds{f})(idx),gridded.dt,...
                         interp_method);

@@ -8,8 +8,8 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
     long_names.time = "Time";
     long_names.dn = "datenum";
     long_names.pos = "Position on chain";
-    long_names.time_offsets = "Time offsets applied";
-    long_names.pressure_offsets = "Pressure offsets applied";
+    long_names.time_offsets = "Time offsets added";
+    long_names.pressure_offsets = "Pressure offsets subtracted";
     long_names.t = "Temperature";
     long_names.p = "Pressure";
     long_names.c = "Conductivity";
@@ -27,7 +27,7 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
     units.time = "seconds since 1970-01-01 0:0:0";
     units.dn = "MATLAB datenum";
     units.pos = "m";
-    units.time_offsets = "days";
+    units.time_offsets = "s";
     units.pressure_offsets = "dbar";
     units.t = "degC";
     units.p = "dbar";
@@ -65,7 +65,7 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
     % time, dn, pos and offsets only have 1 dimension
     time_id = netcdf.defVar(grid_id,'time','NC_DOUBLE',time_dim_id);
     pos_id = netcdf.defVar(grid_id,'pos','NC_DOUBLE',sensor_dim_id);
-    if size(gridded.info.time_offsets(2)) == 1
+    if size(gridded.info.time_offsets(1,:)) == 1
         time_offsets_id = netcdf.defVar(grid_id,'time_offsets','NC_DOUBLE',sensor_dim_id);
     else
         time_offsets_id = netcdf.defVar(grid_id,'time_offsets','NC_DOUBLE',[sensor_dim_id, time_dim_id]);
@@ -183,10 +183,10 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
     % now we can write the gridded data to the variables
     netcdf.putVar(grid_id,time_id,posixtime(gridded.dt(time_idx)));
     netcdf.putVar(grid_id,pos_id,gridded.pos);
-    if size(gridded.info.time_offsets(2)) == 1
-        netcdf.putVar(grid_id,time_offsets_id,gridded.info.time_offsets);
+    if size(gridded.info.time_offsets(1,:)) == 1
+        netcdf.putVar(grid_id,time_offsets_id,gridded.info.time_offsets/seconds(1));
     else
-        netcdf.putVar(grid_id,time_offsets_id,gridded.info.time_offsets(:,time_idx));
+        netcdf.putVar(grid_id,time_offsets_id,gridded.info.time_offsets(:,time_idx)/seconds(1));
     end
     netcdf.putVar(grid_id,pressure_offsets_id,gridded.info.pressure_offsets);
     netcdf.putVar(grid_id,sensor_sn_id,string({sensors(:).sn}));
@@ -256,10 +256,12 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
         netcdf.putAtt(grp_id,global_id,'sensor_type',sensors(ii).sensor_type,'NC_STRING');
         netcdf.putAtt(grp_id,global_id,'position_on_chain',sensors(ii).pos,'NC_DOUBLE');
         netcdf.putAtt(grp_id,global_id,'position_units',units.pos,'NC_STRING');
-        netcdf.putAtt(grp_id,global_id,'time_offset_applied',gridded.info.time_offsets(ii),'NC_DOUBLE');
+        if size(gridded.info.time_offsets(ii,:)) == 1
+            netcdf.putAtt(grp_id,global_id,'time_offset_added',gridded.info.time_offsets(ii)/seconds(1),'NC_DOUBLE');
+        end
         netcdf.putAtt(grp_id,global_id,'time_offset_units',units.time_offsets,'NC_STRING');
         if isfield(data{ii},'p')
-            netcdf.putAtt(grp_id,global_id,'pressure_offset_applied',gridded.info.pressure_offsets(ii),'NC_DOUBLE');
+            netcdf.putAtt(grp_id,global_id,'pressure_offset_subtracted',gridded.info.pressure_offsets(ii),'NC_DOUBLE');
             netcdf.putAtt(grp_id,global_id,'pressure_offset_units',units.pressure_offsets,'NC_STRING');
         end
         netcdf.putAtt(grp_id,global_id,'raw_rsk_file',sensors(ii).file_raw,'NC_STRING');
@@ -272,7 +274,7 @@ function write_nc(data,gridded,cfg,sensors,filename,time_range)
         % write data into variables
         netcdf.putVar(grp_id,time_id,posixtime(data{ii}.dt(time_idx)));
         cellfun(@(varid,name) netcdf.putVar(grp_id,varid,data{ii}.(name)(time_idx)),var_ids,vars);
-
+    
     end
    
     % close file

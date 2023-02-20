@@ -1,5 +1,5 @@
 # SUNRISE2022 T-Chain Processing
-The T-chain data is being processed with a lightly modified version of Dylan Winter's BowChain processing code https://github.com/dswinters/BowChain
+The T-chain data is being processed with an updated version of Dylan Winter's BowChain processing code https://github.com/dswinters/BowChain
 
 ## Google Drive
 All the raw and processed data is available in this Google drive.
@@ -10,11 +10,11 @@ I highly recommend using rclone to move data to and from the Google drive https:
 
 
 ## Filepaths
-This code is intended to be used many different people. Therefore, hardcoding filepaths must be avoided. To facilitate this the code 
+This code is intended to be used many different people. Therefore, hardcoding filepaths must be avoided. To facilitate this, the code 
 utilises the directory structure specified in the Google drive. However, we must still provide the base directory containing our copy 
 of the Google drive. This is done by reading the environment variable `SUNRISE2022_TCHAIN_DATA`.
 - Environment variables can be set at the MATLAB command line using `setenv`
-- e.g. `>> setenv('SUNRISE2022_TCHAIN_DATA','pathToMyData');`
+- e.g. `>> setenv('SUNRISE2022_TCHAIN_DATA',pathToMyData);`
 
 The directory structure defined inside the google drive is
 ```
@@ -62,30 +62,51 @@ Metadata is stored as key-value pairs. Time intervals are written as an array of
 
 - Most of this data was copied manually from the records kept on the ship (this data is all over the place in the main NIW_GoM Google drive but is collated in files called something like Deployment_Info.csv. 
 - A copy of the source file for the data in _metadata.json_ and _sensors.csv_ can be found in the vessel's _raw_ directory) so first check any suspicious values against the ship records. 
-- However, some of these values have been changed during processing
+- Some of these values have been changed during processing
 
 # TODO 
-- [ ] Correct catenary code!!!
-- [ ] Finish time offsets and chain models
-- [ ] Make section files
+- [ ] Time offsets on Aries
+- [ ] Correct the drift on 60704. This is important as it's the only pressure sensor on the bottom half of the chain
+- [ ] Check zero pressure intervals
+- [ ] Get rest of the RHIB log files for section start and end times
+- [ ] Write documentation for changes
 
 ## Issues
+
+### Aries
+| Deployment | Sensor | Issue                                                                                 | Action                                                                     |
+| :--------: | :----: | :------------------------------------------------------------------------------------ | :------------------------------------------------------------------------- |
+| 2022-06-19 | 60704  | Clock drifts by around 90 minutes during deployment                                   |                                                                            |
+| 2022-06-19 |        | No dunk to compute time offsets however clocks appear to be synchronised              |                                                                            |
+| 2022-06-21 | 60704  | Clock starts early and continues to drift during deployment                           |                                                                            |
+| 2022-06-21 |        | Again no dunk - clocked appear synchronised but not as well as before                 |                                                                            |
+| 2022-06-22 | 203187 | Data ends early in deployment                                                         |                                                                            |
+| 2022-06-22 | 203188 | Data ends early in deployment                                                         |                                                                            |
+| 2022-06-22 | 60704  | Clock is ~2 hours out of sync                                                         |                                                                            |
+| 2022-06-22 |        | 2/4 duets and the concerto with issues - not good for fitting depths                  |                                                                            |
+| 2022-06-25 | 203187 | No pressure data                                                                      |                                                                            |
+| 2022-06-25 | 60701  | Clock starts out of sync and drifts severally                                         |                                                                            |
+| 2022-06-25 |        | No dunk - clocks appear to be out of sync by a few seconds                            |                                                                            |
+| 2022-06-28 |        | No dunk - clocks appear to be out of sync by a few seconds                            |                                                                            |
+| 2022-07-03 | 203188 | Very spikey pressure signal towards the end of the deployment                         | Applied a despiking algorithm in post_load_hook                            |
+
 ### Pelican
-| Deployment | Sensor | Issue                                                                                 |
-| :--------: | :----: | :------------------------------------------------------------------------------------ |
-| 2022-06-20 | 60559  | Data ends midway through deployment                                                   |
-| 2022-06-24 | 101161 | Data missing                                                                          |
-| 2022-06-25 | 60558  | Data ends midway through deployment                                                   |
-| 2022-06-25 | 207009 | Data ends midway through deployment                                                   |
-| 2022-06-25 | 60183  | Data ends midway through deployment                                                   |
-| 2022-06-25 |        | These are all pressure sensors. Can compute pressure offset but not time offset. Should we use them for fitting the chain model?                                                                      |
-| 2022-06-28 | 100162 | Data ends slightly before end of the deployment                                       |
-| 2022-07-05 |        | Can't find dunk. Can we improve time offsets?                                         |
+| Deployment | Sensor | Issue                                                                                 | Action                                                                     |
+| :--------: | :----: | :------------------------------------------------------------------------------------ | :------------------------------------------------------------------------- |
+| 2022-06-20 | 60559  | Data ends midway through deployment                                                   |                                                                            |
+| 2022-06-24 | 101161 | No raw files                                                                          |                                                                            |
+| 2022-06-24 | 100698 | No raw files                                                                          |                                                                            |
+| 2022-06-25 | 60558  | Data ends midway through deployment                                                   |                                                                            |
+| 2022-06-25 | 207009 | Data ends midway through deployment                                                   |                                                                            |
+| 2022-06-25 | 60183  | Data ends midway through deployment                                                   |                                                                            |
+| 2022-06-25 |        | These are all pressure sensors. Can compute pressure offset but not time offset.      | TODO: manually fix time offsets                                            |
+| 2022-06-28 | 100162 | Data ends slightly before end of the deployment                                       |                                                                            |
+| 2022-07-05 |        | Can't find dunk.                                                                      |  Can we improve time offsets?                                              |
 
 ### Polly
-| Deployment | Sensor | Issue                                                                                 |
-| :--------: | :----: | :------------------------------------------------------------------------------------ |
-| 2022-06-20 | 101195 | Data is timestamped July 2021                                                         |
-| 2022-06-20 | 100024 | Data is timestamped July 2021                                                         |
-| 2022-06-28 | ?????? | Temperature values are way off (TODO: Find sensor and remove from dataset)                  |
-| 2022-07-02 | 207055 | Data ends before deployment                                                           |
+| Deployment | Sensor | Issue                                                                                 | Action                                                                     |
+| :--------: | :----: | :------------------------------------------------------------------------------------ | :------------------------------------------------------------------------- |
+| 2022-06-20 | 101195 | Data is timestamped July 2021                                                         |                                                                            |
+| 2022-06-20 | 100024 | Data is timestamped July 2021                                                         |                                                                            |
+| 2022-06-28 | ?????? | Temperature values are way off.                                                       | TODO: Find sensor and remove from dataset - is there any recoverable data? |
+| 2022-07-02 | 207055 | Data ends before deployment                                                           |                                                                            |
