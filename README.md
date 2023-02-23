@@ -67,8 +67,8 @@ Metadata is stored as key-value pairs. Time intervals are written as an array of
 # TODO 
 - [ ] Time offsets and clock drifts on Aries deployments (except 2022-07-03)
 - [ ] Rest of the processing of Aries deployments (except 2022-07-03)
-- [ ] Check zero pressure intervals
-- [ ] Get rest of the RHIB log files for section start and end times - Jasmine is working on this
+- [ ] Add "in water" times to the metadata. It's useful for the deployment duration to include the dunk and zero pressure intervals but we want to exclude this data from the section files.
+- [ ] Then recreate section files 
 - [ ] Write documentation for changes
 
 ## Issues
@@ -97,12 +97,19 @@ Metadata is stored as key-value pairs. Time intervals are written as an array of
 | 2022-06-24 | 101161 | No raw files                                                                          |                                                                            |
 | 2022-06-24 | 100698 | No raw files                                                                          |                                                                            |
 | 2022-06-25 | 60558  | Data ends midway through deployment                                                   |                                                                            |
-| 2022-06-25 | 60558  | Zero pressure interval does not match rest of the pressure sensors                    | Set pressure offset in post_offsets_hook using an alternative zero pressure interval |
+| 2022-06-25 | 60558  | Zero pressure interval does not match rest of the pressure sensors                    | Set pressure offset in post_offsets_hook using an alternative interval     |
 | 2022-06-25 | 207009 | Data ends midway through deployment                                                   |                                                                            |
 | 2022-06-25 | 60183  | Data ends midway through deployment                                                   |                                                                            |
 | 2022-06-25 |        | These are all pressure sensors. Need time offsets to to fit depths.                   | TODO: manually fix time offsets in post_offsets_hook                       |
 | 2022-06-28 | 100162 | Data ends slightly before end of the deployment                                       |                                                                            |
 | 2022-07-05 |        | Can't find dunk.                                                                      | Can we improve time offsets?                                               |
+
+### Point Sur
+Only 3 pressure sensors so catenary fit (which requires 3 points) is sensitive to noise. However, the bottom weight is so heavy that we could use a linear fit. Alternatively, just smooth the resulting z data.
+
+| Deployment | Sensor | Issue                                                                                 | Action                                                                     |
+| :--------: | :----: | :------------------------------------------------------------------------------------ | :------------------------------------------------------------------------- |
+| 2022-06-21 | 207031 | No raw files                                                                          |                                                                            |
 
 ### Polly
 | Deployment | Sensor | Issue                                                                                 | Action                                                                     |
