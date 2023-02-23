@@ -1,4 +1,4 @@
-function offsets = time_offsets_dunk_correlation(data,cfg)
+function offsets = time_offsets_dunk_correlation(data,cfg,sensors)
 
     % initialise the offsets
     offsets = seconds(zeros(length(data),1));
@@ -7,7 +7,7 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
     sensor_sn = cfg.time_base_sensor_sn;
 
     % get the position of the sensor we're using as our time base
-    time_base_index = find(strcmp(cfg.sensor_sn,sensor_sn));
+    time_base_index = find(strcmp({sensors.sn},sensor_sn));
     if isempty(time_base_index)
         warning(['Could not find sensor ' cfg.time_base_sensor_sn '. No time offsets calculated.'])
         return 
@@ -38,6 +38,9 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
     median_t = median(base_t);
     % compute correlation on differences from the dunk value
     base_t = abs(base_t - median_t);
+    
+    % create a figure for the correlation
+    if cfg.display_figures; figure(); end
 
     for ii = 1:length(offsets)
         % skip base time
@@ -46,10 +49,9 @@ function offsets = time_offsets_dunk_correlation(data,cfg)
         % get sensor temperature difference
         sensor_t = abs(data{ii}.t - median_t);
 
-        fprintf('\tComputing offset for sensor %02d ... ', ii);
-        disp_fig = isfield(cfg,'display_figures') && cfg.display_figures;
+        fprintf('\tComputing offset for sensor %6s ... ', sensors(ii).sn);
         
-        offsets(ii) = compute_dunk_xcorr(data{ii}.dt,sensor_t,base_dt,base_t,disp_fig);
+        offsets(ii) = compute_dunk_xcorr(data{ii}.dt,sensor_t,base_dt,base_t,cfg.display_figures);
     end 
 
     % close any figures we might have made

@@ -1,13 +1,15 @@
-function [data, offsets] = proc_time_offsets(data,cfg)
+function [data, offsets,sensors] = proc_time_offsets(data,cfg,sensors)
 
 arguments (Input)
     data cell
     cfg (1,1) DeploymentConfiguration
+    sensors
 end
 
 arguments (Output)
     data cell
     offsets (:,1) duration
+    sensors
 end
 
 % Compute offsets
@@ -27,7 +29,7 @@ switch cfg.time_offset_method
   case 'dunk_correlation'
     fprintf('Calibrating clocks using dunk interval: %s,%s\n',...
                  cfg.dunk_interval(1), cfg.dunk_interval(2));
-    offsets = time_offsets_dunk_correlation(data,cfg);
+    offsets = time_offsets_dunk_correlation(data,cfg,sensors);
   otherwise
     fprintf('No time offsets applied\n')
     offsets = seconds(zeros(length(data),1));
@@ -40,7 +42,7 @@ if apply_offsets
     for i = 1:length(data)
         data{i}.dn = data{i}.dn + offsets(i)/days(1);
         data{i}.dt = data{i}.dt + offsets(i);
-        fprintf('\tRemoved %.2fs time offset from %s\n',...
+        fprintf('\tRemoved %.2fs time offset from %6s\n',...
                      offsets(i)/seconds(1),data{i}.sn)
     end
 end

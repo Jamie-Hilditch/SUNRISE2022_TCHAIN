@@ -38,7 +38,7 @@ SUNRISE2022_TCHAIN_DATA
 ```
 _raw_mat_ contains the raw sensor data as parsed by the rbr toolbox. The code refers to these directories as _dir_proc_.
 
-_processed_nc_ contains netcdfs with the processed deployment data, i.e. the output of the BowChain processing code, for analysis in one's language of choice.
+_processed_nc_ contains netcdfs with the processed deployment data, i.e. the gridded but not binned output of the BowChain processing code, for analysis in one's language of choice.
 
 _sections_ contains the processed data divided into sections.
 
@@ -65,10 +65,10 @@ Metadata is stored as key-value pairs. Time intervals are written as an array of
 - Some of these values have been changed during processing
 
 # TODO 
-- [ ] Time offsets on Aries
-- [ ] Correct the drift on 60704. This is important as it's the only pressure sensor on the bottom half of the chain
+- [ ] Time offsets and clock drifts on Aries deployments (except 2022-07-03)
+- [ ] Rest of the processing of Aries deployments (except 2022-07-03)
 - [ ] Check zero pressure intervals
-- [ ] Get rest of the RHIB log files for section start and end times
+- [ ] Get rest of the RHIB log files for section start and end times - Jasmine is working on this
 - [ ] Write documentation for changes
 
 ## Issues
@@ -88,7 +88,7 @@ Metadata is stored as key-value pairs. Time intervals are written as an array of
 | 2022-06-25 | 60701  | Clock starts out of sync and drifts severally                                         |                                                                            |
 | 2022-06-25 |        | No dunk - clocks appear to be out of sync by a few seconds                            |                                                                            |
 | 2022-06-28 |        | No dunk - clocks appear to be out of sync by a few seconds                            |                                                                            |
-| 2022-07-03 | 203188 | Very spikey pressure signal towards the end of the deployment                         | Applied a despiking algorithm in post_load_hook                            |
+| 2022-07-03 | 203188 | Spikey pressure signal towards the end of the deployment                              | Applied a despiking algorithm in post_load_hook                            |
 
 ### Pelican
 | Deployment | Sensor | Issue                                                                                 | Action                                                                     |
@@ -97,16 +97,20 @@ Metadata is stored as key-value pairs. Time intervals are written as an array of
 | 2022-06-24 | 101161 | No raw files                                                                          |                                                                            |
 | 2022-06-24 | 100698 | No raw files                                                                          |                                                                            |
 | 2022-06-25 | 60558  | Data ends midway through deployment                                                   |                                                                            |
+| 2022-06-25 | 60558  | Zero pressure interval does not match rest of the pressure sensors                    | Set pressure offset in post_offsets_hook using an alternative zero pressure interval |
 | 2022-06-25 | 207009 | Data ends midway through deployment                                                   |                                                                            |
 | 2022-06-25 | 60183  | Data ends midway through deployment                                                   |                                                                            |
-| 2022-06-25 |        | These are all pressure sensors. Can compute pressure offset but not time offset.      | TODO: manually fix time offsets                                            |
+| 2022-06-25 |        | These are all pressure sensors. Need time offsets to to fit depths.                   | TODO: manually fix time offsets in post_offsets_hook                       |
 | 2022-06-28 | 100162 | Data ends slightly before end of the deployment                                       |                                                                            |
-| 2022-07-05 |        | Can't find dunk.                                                                      |  Can we improve time offsets?                                              |
+| 2022-07-05 |        | Can't find dunk.                                                                      | Can we improve time offsets?                                               |
 
 ### Polly
 | Deployment | Sensor | Issue                                                                                 | Action                                                                     |
 | :--------: | :----: | :------------------------------------------------------------------------------------ | :------------------------------------------------------------------------- |
+| 2022-06-20 | 60703  | Data starts very late in deployment                                                   |                                                                            |
 | 2022-06-20 | 101195 | Data is timestamped July 2021                                                         |                                                                            |
 | 2022-06-20 | 100024 | Data is timestamped July 2021                                                         |                                                                            |
-| 2022-06-28 | ?????? | Temperature values are way off.                                                       | TODO: Find sensor and remove from dataset - is there any recoverable data? |
+| 2022-06-26 | 60703  | No raw files (perhaps removed from chain after previous issue)                        |                                                                            |
+| 2022-06-26 | 77565  | Temperature values are way off after 2022-07-01 19:14:58                              | Replaced this data with NaNs in post_load_hook, manually set time offset   |
+| 2022-07-02 | 60703  | No raw files                                                                          |                                                                            |
 | 2022-07-02 | 207055 | Data ends before deployment                                                           |                                                                            |

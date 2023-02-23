@@ -19,9 +19,9 @@ function dt_start = compute_best_start_time(target,perd_base,data)
     function [ dts ] = get_subset_dt(S)
         [~,nearest_idx] = min(abs(S.dt - target));
         nearest = S.dt(nearest_idx);
-        min_dt = min_start - abs(min_start - nearest);
-        max_dt = max_start + abs(max_start - nearest);
-        dts = S.dt(S.dt >= min_dt & S.dt <= max_dt);
+        min_dt = min_start - abs(min_start - nearest) - trial_step;
+        max_dt = max_start + abs(max_start - nearest) + trial_step;
+        dts = S.dt((S.dt >= min_dt) & (S.dt <= max_dt));
     end
     subsets = cellfun(@(S) get_subset_dt(S),data,'UniformOutput',false);
 
@@ -29,7 +29,7 @@ function dt_start = compute_best_start_time(target,perd_base,data)
     % the difference between the start time and it's nearest neighbour 
     function [ diff ] = compute_time_differences(pot_start)
         % for each sensor compute the time difference between the potential
-        % start time and it's nearest neighbour
+        % start time and its nearest neighbour
         dns2diff = @(dts) min(abs(dts - pot_start));
         diffs = cellfun(dns2diff,subsets);
         % now sum for the total

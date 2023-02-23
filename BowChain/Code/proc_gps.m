@@ -9,10 +9,11 @@
 
 function gridded = proc_gps(gridded,cfg)
 
-if isfield(cfg,'file_gps')
+    if isempty(cfg.file_gps); return; end
+    
     % Load gps data
     gps = load(cfg.file_gps);
-
+    
     % extract gps from gps
     if isfield(gps,'gps')
         gps = gps.gps;
@@ -22,12 +23,12 @@ if isfield(cfg,'file_gps')
     if isfield(gps,'time')
         gps = renameStructField(gps,'time','dn');
     end
-
+    
     % convert gps datenum to datetime
-    gps.dt = datetime(dn,'ConvertFrom','datenum');
-
-    [~,iu] = unique(gps.dn);
-
+    gps.dt = datetime(gps.dn,'ConvertFrom','datenum');
+    
+    [~,iu] = unique(gps.dt);
+    
     % Interpolate GPS data to sensor time
     lat = interp1(gps.dt(iu),gps.lat(iu),gridded.dt);
     lon = interp1(gps.dt(iu),gps.lon(iu),gridded.dt);
@@ -50,14 +51,14 @@ if isfield(cfg,'file_gps')
         vy = gradient(y,dt);
         h = mod(90 - 180/pi*atan2(vy,vx),360);
     end
-
-
+    
+    
     % Make lat/lon/heading the same size as gridded data
     nsens = length(gridded.pos);
     h = repmat(h,nsens,1);
     lat = repmat(lat,nsens,1);
     lon = repmat(lon,nsens,1);
-
+    
     % Apply positional offsets in the direction of ship motion
     % arc = distdim(gridded.x,'meters','degrees','earth'); % convert m to arclength
     %[gridded.lat, gridded.lon] = reckon(lat,lon,gridded.x,h); % apply arclength offset

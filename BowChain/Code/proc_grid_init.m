@@ -65,11 +65,11 @@ for i = 1:length(data)
     gridded.pos(i,:) = sensors(i).pos;
 end
 
-% Add lat and lon fields if GPS file is specifeid
-if isfield(config,'file_gps')
-    gridded.lat = [];
-    gridded.lon = [];
-end
+% % Add lat and lon fields if GPS file is specifeid
+% if ~isempty(config.file_gps)
+%     gridded.lat = [];
+%     gridded.lon = [];
+% end
 
 gridded.info = struct();
 

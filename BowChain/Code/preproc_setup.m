@@ -44,10 +44,10 @@ for i = 1:length(config.sensor_sn)
             msg = '\t%s [%s]\n';
             fprintf(msg,sensor_type,sn);
         else
-            msg = 'Skipping %s [%s]: found %d raw file(s)\n';
-            warning(msg,sensor_type,sn,length(file_raw));
+            msg = '\tWARNING: Skipping %s [%s]: found %d raw file(s)\n';
+            fprintf(2,msg,sensor_type,sn,length(file_raw));
         end
     else
-        warning('No sensor information found for [%s]\n',sn)
+        fprintf(2,'\tWARNING: No sensor information found for [%s]\n',sn)
     end
 end

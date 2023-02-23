@@ -22,7 +22,7 @@ for i = 1:length(data)
             fprintf('\tRemoved %.2fdbar pressure offset from %s\n',...
                          p0,data{i}.sn)
     else 
-        fprintf('\tNo pressure offset removed from %s\n',data{i}.sn)
+        fprintf(2,'\tWARNING: No pressure offset removed from %s\n',data{i}.sn)
         p0 = 0;
     end
     p_offsets(i) = p0;
@@ -40,8 +40,8 @@ for ii = 1:length(data)
     lw = 0.5;
     idx = (data{ii}.dt >= cfg.zero_pressure_interval(1)) & ...
         (data{ii}.dt <= cfg.zero_pressure_interval(2));
-    plot(ax1,data{ii}.dt(idx),data{ii}.p(idx) + p_offsets(ii),linewidth=lw,DisplayName=cfg.sensor_sn{ii});
-    plot(ax2,data{ii}.dt(idx),data{ii}.p(idx),linewidth=lw,DisplayName=cfg.sensor_sn{ii});
+    plot(ax1,data{ii}.dt(idx),data{ii}.p(idx) + p_offsets(ii),linewidth=lw,DisplayName=data{ii}.sn);
+    plot(ax2,data{ii}.dt(idx),data{ii}.p(idx),linewidth=lw,DisplayName=data{ii}.sn);
 end
 
 linkaxes([ax1,ax2],'x')

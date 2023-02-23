@@ -3,7 +3,7 @@
 % Description: Creates a basic deployment configuration structure for all
 %              BowChain/Tchain deployments.
 % Inputs: none
-% Outputs: config structure
+% Outputs: array of DeploymentConfiguration
 %
 % Author: Jamie Hilditch (hilditch@stanford.edu)
 % Created: January 2022
@@ -13,7 +13,7 @@ function config = config_SUNRISE2022()
     %% Set some global configurations
     global_config = DeploymentConfiguration();
     global_config.cruise = 'SUNRISE2022';
-    global_config.chain_model = 'cm_catenary'; %'cm_straight';
+    global_config.chain_model = 'cm_catenary';
     global_config.freq_base = 2;
     global_config.bin_method = 'none';
     global_config.raw2mat = false; % if true force reparse of data;
@@ -64,7 +64,7 @@ function config = config_SUNRISE2022()
     vessel_names = {'Aries', 'Pelican', 'PointSur', 'Polly'};
 
     nvessels = length(vessel_names);
-    configs = cell(length(vessel_names),1);
+    configs = cell(nvessels,1);
   
     for vi = 1:nvessels
         vessel = vessel_names{vi};

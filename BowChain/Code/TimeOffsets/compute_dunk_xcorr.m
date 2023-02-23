@@ -21,8 +21,12 @@ function offset = compute_dunk_xcorr(dt,temp,base_dt,base_t,display_figure)
     lag_idx = lags(idx);
     offset = lag_idx*delta_t;
 
-    if abs(lag_idx) == maxlag
-        warning('Maximum correlation found on boundary')
+    if isnan(max_r)
+        fprintf(2,'WARNING: All correlations are nan. Setting offset to 0\n')
+        offset = 0;
+        return
+    elseif abs(lag_idx) == maxlag
+        warning(2,'WARNING: Maximum correlation found on boundary')
     end
 
     % make a quick plot

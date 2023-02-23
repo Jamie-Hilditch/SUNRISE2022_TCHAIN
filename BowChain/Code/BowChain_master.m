@@ -54,8 +54,10 @@ for i = 1:ndep
     data = post_load_hook(data,cfg,sensors);
 
     % 2) Compute and apply time/pressure offsets to raw data
-    [data, time_offsets] = proc_time_offsets(data,cfg);
+    [data, time_offsets, sensors] = proc_time_offsets(data,cfg,sensors);
     [data, pressure_offsets] = proc_pressure_cal(data,cfg);
+    [data, time_offsets, pressure_offsets, sensors] = post_offsets_hook( ...
+        data,time_offsets,pressure_offsets,cfg,sensors);
    
     % 3) Sample calibrated data onto uniform time base
     [gridded, sensors] = proc_grid_init(data,cfg,sensors);

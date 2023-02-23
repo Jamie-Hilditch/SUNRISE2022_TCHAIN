@@ -10,7 +10,7 @@ fprintf('Loading raw data from .mat files ...\n')
 for i = 1:length(sensors)
     data{i} = load(sensors(i).file_mat);
     if ~any(isfinite(data{i}.dn))
-        warning('No data found for %s [%s]',sensors(i).sensor_type,sensors(i).sn)
+        fprintf(2,'\tWARNING: No data found for %s [%s]',sensors(i).sensor_type,sensors(i).sn)
     else
         msg = '\tLoaded data from %s [%s]\n';
         fprintf(msg,sensors(i).sensor_type,sensors(i).sn)
