@@ -88,7 +88,7 @@ for i = 1:ndep
 end
 
 % if specifying a single deployment don't return output in cell arrays
-if ischar(vessels) && ischar(deployments)
+if ischar(vessels) && ischar(deployments) && ndep == 1
     if nargout >= 1; binned_output = binned; end
     if nargout >= 2; gridded_output = gridded; end
     if nargout == 3; data_output = data; end

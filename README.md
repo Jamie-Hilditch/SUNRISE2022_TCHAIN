@@ -93,7 +93,7 @@ Metadata is stored as key-value pairs. Time intervals are written as an array of
 ### Pelican
 | Deployment | Sensor | Issue                                                                                 | Action                                                                     |
 | :--------: | :----: | :------------------------------------------------------------------------------------ | :------------------------------------------------------------------------- |
-| 2022-06-20 | 60559  | Data ends midway through deployment                                                   |                                                                            |
+| 2022-06-20 | 60559  | Data ends midway through deployment                                                   | Clock appears synchronised so no time offset applied                       |
 | 2022-06-24 | 101161 | No raw files                                                                          |                                                                            |
 | 2022-06-24 | 100698 | No raw files                                                                          |                                                                            |
 | 2022-06-25 | 60558  | Data ends midway through deployment                                                   |                                                                            |
