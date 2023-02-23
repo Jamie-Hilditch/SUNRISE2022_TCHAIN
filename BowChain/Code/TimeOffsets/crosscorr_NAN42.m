@@ -1,4 +1,7 @@
 function [lags,rhoyy, rhocrit, Ryy, N]= crosscorr_NAN42(a,b,mon)
+    % Computes the cross correlation of two timeseries with NaNs
+    % Ale Sanchez-Rios - January 2023
+
 
     rows=2*mon+2+2*mon;
     n=length(a);

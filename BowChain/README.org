@@ -47,7 +47,7 @@ Each deployment is processed sequentially with the following steps:
      function tries to add fields to a single entry of a non-scalar struct
      array. In other words, ~gridded(i) = some_function(gridded(i))~ will not
      work if ~some_function~ tries to add non-initialized fields to
-     ~gridded(i)~.
+     ~gridded(i)~.Note that this method is untested since the code was updated to use datetimes rather than datenums.
 
 5) Calibrate sensor clocks and pressure sensors
    - Clocks are calibrated using [[file:Code/proc_time_offsets.m][proc_time_offsets.m]]. The
