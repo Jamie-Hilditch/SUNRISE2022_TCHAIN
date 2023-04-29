@@ -17,7 +17,7 @@ function config = config_SUNRISE2022()
     global_config.freq_base = 2;
     global_config.bin_method = 'none';
     global_config.raw2mat = false; % if true force reparse of data;
-    global_config.display_figures = true;
+    global_config.display_figures = false;
     global_config.force_linear = true; % force use of linear interpolation in time
     global_config.save_output = true;
     
